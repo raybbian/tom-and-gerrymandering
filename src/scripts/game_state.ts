@@ -1,4 +1,4 @@
-import { Face, GridGenerator } from "./grid";
+import { DCEL, Face, GridGenerator, HalfEdge } from "./grid";
 import { PerlinNoise } from "./perlin";
 
 class Cell {
@@ -25,6 +25,11 @@ class Cell {
 }
 
 export class GameState {
+    public actionMode: "redistricting" | "campaigning";
+
+    private dcel: DCEL;
+    private faceToCell: Map<Face, Cell>;
+
     public cells: Cell[];
     // public currentCellSelection: number | null;
     // public mouseDown: boolean;
@@ -36,7 +41,13 @@ export class GameState {
     static perlinPopulation = new PerlinNoise(1);
     static perlinVoterDistribution = new PerlinNoise(1);
 
+
     constructor(grid: GridGenerator) {
+        this.actionMode = "campaigning";
+
+        this.dcel = grid.dcel;
+        this.faceToCell = new Map();
+
         this.cells = Array.from(grid.dcel.faces).map(
             (face) => {
                 const center = face.centerPoint();
@@ -54,7 +65,9 @@ export class GameState {
                 }
 
                 const voterProportion = GameState.perlinVoterDistribution.getNormalizedNoise(...center, .20, .80);
-                return new Cell(voterPopulation, noise, voterProportion, face);
+                const cell = new Cell(voterPopulation, noise, voterProportion, face);
+                this.faceToCell.set(face, cell);
+                return cell;
             }
         );
 
@@ -102,5 +115,32 @@ export class GameState {
             }
         }
         this.cells[cellIndex].district = null;
+    }
+
+    campaignInCell(cellIndex: number, probability: number = 1) {
+        const updateCellProportion = (cell: Cell, scale: number) => {
+            const proportion = cell.voterProportion;
+            cell.voterProportion = proportion + scale * probability * 0.5 * (1 - proportion)
+        }
+        const start = this.cells[cellIndex];
+
+        const visited = new Set<Cell>();
+        const stack: [Cell, number][] = [];
+        visited.add(start);
+        stack.push([start, 0]);
+        while (stack.length != 0) {
+            const [v, weight] = stack.pop()!;
+            visited.add(v);
+            updateCellProportion(v, 1 / (weight + 1));
+            const initialEdge: HalfEdge = v.dcelFace.edge;
+            let edge = initialEdge;
+            do {
+                const cell = this.faceToCell.get(edge.twin.face)!;
+                if (!visited.has(cell) && (weight + 1 <= 2) && !cell.dcelFace.isExterior) {
+                    stack.push([cell, weight + 1]);
+                }
+                edge = edge.next;
+            } while (edge != initialEdge)
+        }
     }
 }

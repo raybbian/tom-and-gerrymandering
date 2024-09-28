@@ -44,13 +44,17 @@ export default function GridCanvas({
         // console.log(val);
     }
     function setStartingSelection(val: number) {
-        const district = gameState.cells[val].district;
-        if (district == null) {
-            // console.log("set starting selection to new dist");
-            startingSelection.current = gameState.numDistricts + 1;
+        if (gameState.actionMode == "redistricting") {
+            const district = gameState.cells[val].district;
+            if (district == null) {
+                // console.log("set starting selection to new dist");
+                startingSelection.current = gameState.numDistricts + 1;
+            } else {
+                // console.log("set starting selection to existing dist " + console.log(gameState.cells[val].district))
+                startingSelection.current = district;
+            }
         } else {
-            // console.log("set starting selection to existing dist " + console.log(gameState.cells[val].district))
-            startingSelection.current = district;
+            gameState.campaignInCell(val);
         }
     }
     function setMouseDown(val: boolean) {
@@ -169,6 +173,7 @@ export default function GridCanvas({
                         key={i}
                         proportion={gameState.cells[i].voterProportion}
                         population={gameState.cells[i].truePopulation}
+                        // actionMode={gameState.actionMode}
                     />
                 );
             })}
