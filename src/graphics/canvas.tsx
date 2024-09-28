@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Face, GridGenerator, HalfEdge } from "@/scripts/grid";
 import {
     CameraControls,
@@ -10,6 +10,85 @@ import {
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
+
+const highCutoff = 0.73;
+const medCutoff = 0.5;
+function randomizeMatrix() {
+    const scale = new THREE.Vector3();
+    const position = new THREE.Vector3();
+    const rotation = new THREE.Vector3();
+    position.randomDirection().multiplyScalar(40 * Math.random() ** 1.5);
+    rotation.x = Math.random() * 2 * Math.PI;
+    rotation.y = Math.random() * 2 * Math.PI;
+    rotation.z = Math.random() * 2 * Math.PI;
+    scale.x = scale.y = scale.z = 0.35 + Math.random() * 1.25
+    return new THREE.Matrix4().compose(position, new THREE.Quaternion(), scale)
+}
+
+function Buildings(): React.JSX.Element {
+    // new THREE.MeshStandardMaterial({ color: new THREE.Color(0.1, 0.15, 0.15) }), 9000));
+    const ref = useRef<THREE.BatchedMesh | null>(null);
+    const num = 9000;
+
+    useEffect(() => {
+        const tower = new THREE.BoxGeometry(0.05, 0.1, 0.05).toNonIndexed();
+        const house = new THREE.BoxGeometry(0.03, 0.04, 0.03).toNonIndexed();
+        const tree = new THREE.ConeGeometry(0.005, 0.02).toNonIndexed();
+
+        if (ref.current == null) return;
+        for (let i = 0; i < num; i++) {
+            const radius = 2.35;
+            const u = Math.random() * radius;
+            const v = Math.random() * radius;
+            let x = 0, y = 0;
+
+            if (i < num / 3) {
+                x = u - 0.5 * v;
+                y = 0.866 * v;
+            } else if (i < 2 * num / 3) {
+                x = u - 0.5 * v;
+                y = -0.866 * v;
+            } else {
+                x = -0.5 * v - 0.5 * u;
+                y = 0.866 * v - 0.866 * u;
+            }
+
+            let ii = 0;
+            const noise = GameState.perlinPopulation.getNormalizedNoise(x, y, 0, 1);
+            if (noise > highCutoff) {
+                // if (Math.random() > noise) continue;
+                ii = ref.current.addGeometry(tower);
+            }
+            else if (noise > medCutoff) {
+                // if (Math.random() > noise) continue;
+                ii = ref.current.addGeometry(house);
+            }
+            else {
+                // if (Math.random() < noise) continue;
+                ii = ref.current.addGeometry(tree);
+            }
+
+            ref.current.setMatrixAt(ii, new THREE.Matrix4().compose(
+                new THREE.Vector3(x, 0, y),
+                new THREE.Quaternion(),
+                new THREE.Vector3(10, 10, 10),
+            ));
+        }
+    }, []);
+
+    return (
+        <batchedMesh
+            ref={ref}
+            sortObjects={false}
+            frustumCulled={false}
+            perObjectFrustumCulled={false}
+            args={[num, num * 512, num * 1024]}>
+            <meshStandardMaterial
+                color={[0.1, .15, .15]}
+            />
+        </batchedMesh>
+    )
+}
 
 export default function GridCanvas({
     grid,
@@ -56,6 +135,8 @@ export default function GridCanvas({
     function setMouseDown(val: boolean) {
         mouseDown.current = val;
     }
+
+    const buildingsComp = useRef(<Buildings />);
 
     const borderLines = useMemo(() => {
         const mp: Map<HalfEdge, [THREE.Vector3, THREE.Vector3]> = new Map();
@@ -138,8 +219,9 @@ export default function GridCanvas({
                 decay={0}
                 intensity={Math.PI}
             />
+            {buildingsComp.current}
 
-            {Array.from(gameState.districts.values()).map((districtSet) => {
+            {false && Array.from(gameState.districts.values()).map((districtSet) => {
                 if (districtSet.size == 0) return;
                 const faces = Array.from(districtSet).map(
                     (cellInd) => gameState.cells[cellInd].dcelFace,
@@ -156,7 +238,7 @@ export default function GridCanvas({
                     );
                 });
             })}
-            {Array.from(grid.dcel.faces.values()).map((face, i) => {
+            {false && Array.from(grid.dcel.faces.values()).map((face, i) => {
                 if (face.isExterior) return;
                 return (
                     <GridSpace
