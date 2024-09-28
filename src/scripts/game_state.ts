@@ -24,7 +24,7 @@ export class GameState {
         // TODO: add noise generation logic
         this.cells = [];
         for (let i = 0; i < 500; i++) {
-            this.cells.push(new Cell(1, 1))
+            this.cells.push(new Cell(1, 1));
         }
         // this.currentCellSelection = null;
         // this.mouseDown = false;
@@ -53,7 +53,9 @@ export class GameState {
             }
             console.log("attempting to get district " + district);
             this.districts.get(district)!.add(cellIndex);
-            console.log("district size is: " + this.districts.get(district)!.size)
+            console.log(
+                "district size is: " + this.districts.get(district)!.size,
+            );
             // this.district_sizes.set(district, this.district_sizes.get(district)! + this.cells[cellIndex].population);
             // this.districts.get(district)!.(cellIndex);
         }

@@ -6,7 +6,13 @@ import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useRef } from "react";
 
-export default function GridCanvas({ grid, gameState }: { grid: GridGenerator, gameState: GameState }) {
+export default function GridCanvas({
+    grid,
+    gameState,
+}: {
+    grid: GridGenerator;
+    gameState: GameState;
+}) {
     const currentSelection = useRef<number | null>(null);
     // null if selected has no district, otherwise district number
     const startingSelection = useRef<number | null>(null);
@@ -14,14 +20,17 @@ export default function GridCanvas({ grid, gameState }: { grid: GridGenerator, g
         currentSelection.current = val;
         if (currentSelection.current != null && mouseDown.current) {
             console.log(startingSelection.current);
-            gameState.addCellToDistrict(currentSelection.current, startingSelection.current);
+            gameState.addCellToDistrict(
+                currentSelection.current,
+                startingSelection.current,
+            );
         }
         // console.log(val);
     }
     function setStartingSelection(val: number) {
         const district = gameState.cells[val].district;
         if (district == null) {
-            console.log("set starting selection to new dist")
+            console.log("set starting selection to new dist");
             startingSelection.current = gameState.numDistricts + 1;
         } else {
             // console.log("set starting selection to existing dist " + console.log(gameState.cells[val].district))
@@ -97,7 +106,7 @@ export default function GridCanvas({ grid, gameState }: { grid: GridGenerator, g
                                     ),
                             ),
                         ]}
-                        currentSelection={currentSelection}
+                        currentSelection={currentSelection.current}
                         setCurrentSelection={setCurrentSelection}
                         setMouseDown={setMouseDown}
                         setStartingSelection={setStartingSelection}
