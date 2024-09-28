@@ -76,7 +76,7 @@ export class GameState {
         // this.currentDistrictSelection = 0;
         this.numDistricts = 0;
         this.districts = new Map();
-        for (let i = 1; i <= 15; i++) {
+        for (let i = 1; i <= 200; i++) {
             this.districts.set(i, new Set());
         }
     }
