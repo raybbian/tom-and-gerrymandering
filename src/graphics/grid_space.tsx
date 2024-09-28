@@ -75,8 +75,8 @@ export function GridSpace(
                 e.stopPropagation();
                 if (e.button != 0) return;
                 props.setMouseDown(true);
-                props.setCurrentSelection(props.index);
                 props.setStartingSelection(props.index);
+                props.setCurrentSelection(props.index);
                 console.log("set starting selection");
             }}
             onPointerUp={(e) => {

@@ -10,10 +10,9 @@ import { useState } from "react";
 export default function Home() {
     const [grid, setGrid] = useState(new GridGenerator(5, 0.6));
     const [gameState, setGameState] = useState(new GameState(grid));
-    const [mode, setMode] = useState<string>("campaign");
     return (
         <div>
-            <Controls mode={mode} setMode={setMode}/>
+            <Controls mode={gameState.actionMode} gameState={gameState}/>
             <CampaignMenu onClickHandler={() => console.log("troll")} cost={50} />
             <DialogueContainer />
             <div className="bg-blue-950 w-[100dvw] h-[100dvh] absolute z-0">

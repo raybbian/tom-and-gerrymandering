@@ -81,6 +81,10 @@ export class GameState {
         }
     }
 
+    setActionMode(mode: "redistricting" | "campaigning") {
+        this.actionMode = mode;
+    }
+
     addCellToDistrict(cellIndex: number, district: number | null) {
         const previousDistrict = this.cells[cellIndex].district;
         console.log(district == null);

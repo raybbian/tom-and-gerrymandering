@@ -46,6 +46,7 @@ export default function GridCanvas({
     function setStartingSelection(val: number) {
         if (gameState.actionMode == "redistricting") {
             const district = gameState.cells[val].district;
+            console.log("District for index " + val + " is " + district);
             if (district == null) {
                 // console.log("set starting selection to new dist");
                 startingSelection.current = gameState.numDistricts + 1;
@@ -113,7 +114,9 @@ export default function GridCanvas({
     }, []);
 
     return (
-        <Canvas>
+        <Canvas
+            onPointerOut={() => setCurrentSelection(null)}
+        >
             <ambientLight intensity={Math.PI / 2} />
             <CameraControls
                 ref={cameraControlRef}
