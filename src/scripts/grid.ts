@@ -86,23 +86,23 @@ export class DCEL {
         this.extFace = new Face(true);
         this.faces.add(this.extFace);
     }
+}
 
-    exteriorHEOfFaces(faces: Face[]): HalfEdge[] {
-        const facesSet = new Set(faces);
-        const outerEdgeSet = new Set();
-        //finds outer edges
-        faces.forEach((face) => {
-            let he = face.edge;
-            do {
-                if (!facesSet.has(he.twin.face)) {
-                    outerEdgeSet.add(he.twin);
-                }
-                he = he.next;
-            } while (he != face.edge);
-        });
+export function exteriorHEOfFaces(faces: Face[]): HalfEdge[] {
+    const facesSet = new Set(faces);
+    const outerEdgeSet = new Set();
+    //finds outer edges
+    faces.forEach((face) => {
+        let he = face.edge;
+        do {
+            if (!facesSet.has(he.twin.face)) {
+                outerEdgeSet.add(he.twin);
+            }
+            he = he.next;
+        } while (he != face.edge);
+    });
 
-        return Array.from(outerEdgeSet) as HalfEdge[];
-    }
+    return Array.from(outerEdgeSet) as HalfEdge[];
 }
 
 export class GridGenerator {

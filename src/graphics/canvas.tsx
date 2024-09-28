@@ -1,6 +1,11 @@
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
-import { Face, GridGenerator, HalfEdge } from "@/scripts/grid";
+import {
+    exteriorHEOfFaces,
+    Face,
+    GridGenerator,
+    HalfEdge,
+} from "@/scripts/grid";
 import {
     CameraControls,
     Line,
@@ -91,6 +96,14 @@ export default function GridCanvas({
         return mp;
     }, [grid]);
 
+    const districtColors = useMemo(() => {
+        const mp: Map<number, number> = new Map();
+        Array.from(grid.dcel.faces.values()).forEach((_, i) => {
+            mp.set(i, Math.random() * 0xffffff);
+        });
+        return mp;
+    }, [grid]);
+
     /**
      * use this ref to programatically control the camera
      */
@@ -139,23 +152,24 @@ export default function GridCanvas({
                 intensity={Math.PI}
             />
 
-            {Array.from(gameState.districts.values()).map((districtSet) => {
-                if (districtSet.size == 0) return;
-                const faces = Array.from(districtSet).map(
-                    (cellInd) => gameState.cells[cellInd].dcelFace,
-                );
-                const color = Math.random() * 0xffffff;
-                const shell = grid.dcel.exteriorHEOfFaces(faces);
-                return shell.map((he, i) => {
-                    return (
-                        <Line
-                            key={i}
-                            points={borderLines.get(he)!}
-                            color={color}
-                        />
+            {Array.from(gameState.districts.entries()).map(
+                ([districtInd, districtSet]) => {
+                    if (districtSet.size == 0) return;
+                    const faces = Array.from(districtSet).map(
+                        (cellInd) => gameState.cells[cellInd].dcelFace,
                     );
-                });
-            })}
+                    const shell = exteriorHEOfFaces(faces);
+                    return shell.map((he, i) => {
+                        return (
+                            <Line
+                                key={i}
+                                points={borderLines.get(he)!}
+                                color={districtColors.get(districtInd)}
+                            />
+                        );
+                    });
+                },
+            )}
             {Array.from(grid.dcel.faces.values()).map((face, i) => {
                 if (face.isExterior) return;
                 return (
