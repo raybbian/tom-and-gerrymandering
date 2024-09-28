@@ -1,21 +1,42 @@
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { GridGenerator } from "@/scripts/grid";
-import { CameraControls, Line, Sphere, Stats } from "@react-three/drei";
+import {
+    CameraControls,
+    Line,
+    PerspectiveCamera,
+    Sphere,
+    Stats,
+} from "@react-three/drei";
 import { GridSpace } from "./grid_space";
+import { useRef } from "react";
 
 export default function GridCanvas({ grid }: { grid: GridGenerator }) {
+    const controlRef = useRef<CameraControls>(null!);
+
     return (
         <Canvas>
             <ambientLight intensity={Math.PI / 2} />
             <CameraControls
-                minDistance={2}
-                maxDistance={5}
+                ref={controlRef}
                 minPolarAngle={0}
                 maxPolarAngle={(2 * Math.PI) / 5}
-                // minAzimuthAngle={0}
-                // maxAzimuthAngle={0}
+                minDistance={1}
+                maxDistance={5}
+                onStart={(e) => {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    // NOTE: e.target should be the cameracontrols instance but sometimes it wasn't, but its working now so let Raymond know if the camera bounding boxes braek
+                    e.target.setBoundary(
+                        // type: i
+                        new THREE.Box3(
+                            new THREE.Vector3(-1, 0, -1),
+                            new THREE.Vector3(1, 0.5, 1),
+                        ),
+                    );
+                }}
             />
+            <PerspectiveCamera makeDefault position={[0, 5, 0]} />
             <Stats />
             <spotLight
                 position={[10, 10, 10]}
