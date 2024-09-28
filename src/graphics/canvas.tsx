@@ -9,16 +9,48 @@ import {
     Stats,
 } from "@react-three/drei";
 import { GridSpace } from "./grid_space";
+import { GameState } from "@/scripts/game_state";
 import { useRef } from "react";
 
-export default function GridCanvas({ grid }: { grid: GridGenerator }) {
-    const controlRef = useRef<CameraControls>(null!);
-
+export default function GridCanvas({
+    grid,
+    gameState,
+}: {
+    grid: GridGenerator;
+    gameState: GameState;
+}) {
+    const currentSelection = useRef<number | null>(null);
+    // null if selected has no district, otherwise district number
+    const startingSelection = useRef<number | null>(null);
+    function setCurrentSelection(val: number | null) {
+        currentSelection.current = val;
+        if (currentSelection.current != null && mouseDown.current) {
+            console.log(startingSelection.current);
+            gameState.addCellToDistrict(
+                currentSelection.current,
+                startingSelection.current,
+            );
+        }
+        // console.log(val);
+    }
+    function setStartingSelection(val: number) {
+        const district = gameState.cells[val].district;
+        if (district == null) {
+            console.log("set starting selection to new dist");
+            startingSelection.current = gameState.numDistricts + 1;
+        } else {
+            // console.log("set starting selection to existing dist " + console.log(gameState.cells[val].district))
+            startingSelection.current = district;
+        }
+    }
+    const mouseDown = useRef<boolean>(false);
+    function setMouseDown(val: boolean) {
+        mouseDown.current = val;
+    }
     return (
         <Canvas>
             <ambientLight intensity={Math.PI / 2} />
             <CameraControls
-                ref={controlRef}
                 minPolarAngle={0}
                 maxPolarAngle={(2 * Math.PI) / 5}
                 minDistance={1}
@@ -91,6 +123,11 @@ export default function GridCanvas({ grid }: { grid: GridGenerator }) {
                                     ),
                             ),
                         ]}
+                        currentSelection={currentSelection.current}
+                        setCurrentSelection={setCurrentSelection}
+                        setMouseDown={setMouseDown}
+                        setStartingSelection={setStartingSelection}
+                        index={i}
                         key={i}
                     />
                 );
