@@ -5,7 +5,7 @@ import { useState } from "react";
 
 export default function Home() {
     const [grid, setGrid] = useState(new GridGenerator(5, 0.6));
-    const [gameState, setGameState] = useState(new GameState());
+    const [gameState, setGameState] = useState(new GameState(grid));
 
     return (
         <div className="bg-blue-950 w-[100dvw] h-[100dvh]">

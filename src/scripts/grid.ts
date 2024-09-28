@@ -1,4 +1,4 @@
-class Point {
+export class Point {
     pos: [number, number];
     isFixed: boolean;
     isMidpoint: boolean;
@@ -21,7 +21,7 @@ class Point {
     }
 }
 
-class HalfEdge {
+export class HalfEdge {
     a: Point;
     b: Point;
     twin: HalfEdge = null!;
@@ -35,7 +35,7 @@ class HalfEdge {
     }
 }
 
-class Face {
+export class Face {
     edge: HalfEdge = null!;
     isExterior: boolean;
 
@@ -73,7 +73,7 @@ class Face {
     }
 }
 
-class DCEL {
+export class DCEL {
     points: Set<Point>;
     halfEdges: Set<HalfEdge>;
     faces: Set<Face>;
@@ -85,6 +85,23 @@ class DCEL {
         this.faces = new Set();
         this.extFace = new Face(true);
         this.faces.add(this.extFace);
+    }
+
+    exteriorHEOfFaces(faces: Face[]): HalfEdge[] {
+        const facesSet = new Set(faces);
+        const outerEdgeSet = new Set();
+        //finds outer edges
+        faces.forEach((face) => {
+            let he = face.edge;
+            do {
+                if (!facesSet.has(he.twin.face)) {
+                    outerEdgeSet.add(he.twin);
+                }
+                he = he.next;
+            } while (he != face.edge);
+        });
+
+        return Array.from(outerEdgeSet) as HalfEdge[];
     }
 }
 

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ThreeElements, useFrame } from "@react-three/fiber";
 import { ConvexGeometry } from "three/addons/geometries/ConvexGeometry.js";
 
@@ -16,6 +16,7 @@ export function GridSpace(
     const meshRef = useRef<THREE.Mesh>(null!);
     const [hovered, setHover] = useState(false);
     const [prevHovered, setPrevHovered] = useState(false);
+
     useFrame((_, delta) => {
         if (hovered) {
             meshRef.current.position.y += delta * 0.5;
@@ -36,7 +37,6 @@ export function GridSpace(
             setPrevHovered(false);
             if (props.currentSelection == props.index) {
                 props.setCurrentSelection(null);
-                console.log("a");
             }
         }
     });

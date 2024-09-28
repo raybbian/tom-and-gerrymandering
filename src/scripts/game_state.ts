@@ -1,14 +1,22 @@
+import { Face, GridGenerator } from "./grid";
+
 class Cell {
     public population: 1 | 2 | 3;
     public voterProportion: number;
     public district: number | null;
-    constructor(population: 1 | 2 | 3, voterProportion: number) {
+    public dcelFace: Face;
+    constructor(
+        population: 1 | 2 | 3,
+        voterProportion: number,
+        dcelFace: Face,
+    ) {
         // an int: [1, 2, 3]
         this.population = population;
         // a float in the range [0, 1]
         this.voterProportion = voterProportion;
         // 0 if the cell is not part of a district, otherwise the district number it is part of
         this.district = null;
+        this.dcelFace = dcelFace;
     }
 }
 
@@ -20,12 +28,11 @@ export class GameState {
     public numDistricts: number;
     // (district number, Set<cells in the district>)
     public districts: Map<number, Set<number>>;
-    constructor() {
+    constructor(grid: GridGenerator) {
         // TODO: add noise generation logic
-        this.cells = [];
-        for (let i = 0; i < 500; i++) {
-            this.cells.push(new Cell(1, 1));
-        }
+        this.cells = Array.from(grid.dcel.faces).map(
+            (face) => new Cell(1, 1, face),
+        );
         // this.currentCellSelection = null;
         // this.mouseDown = false;
         // this.currentDistrictSelection = 0;
