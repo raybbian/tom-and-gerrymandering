@@ -160,6 +160,8 @@ export default function GridCanvas({
                         setStartingSelection={setStartingSelection}
                         index={i}
                         key={i}
+                        proportion={gameState.cells[i].voterProportion}
+                        population={gameState.cells[i].truePopulation}
                     />
                 );
             })}
