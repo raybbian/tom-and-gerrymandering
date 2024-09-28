@@ -15,10 +15,6 @@ import {
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-    determineDistrictSusness,
-    validateBadDistricts,
-} from "@/scripts/district";
 
 export default function GridCanvas({
     grid,
@@ -102,8 +98,8 @@ export default function GridCanvas({
 
     const districtColors = useMemo(() => {
         const mp: Map<number, number> = new Map();
-        grid.dcel.faces.values().forEach((i, _) => {
-            mp.set(_, Math.random() * 0xffffff);
+        Array.from(grid.dcel.faces.values()).forEach((_, i) => {
+            mp.set(i, Math.random() * 0xffffff);
         });
         return mp;
     }, [grid]);
