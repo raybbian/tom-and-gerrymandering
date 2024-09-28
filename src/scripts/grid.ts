@@ -2,6 +2,10 @@ class Point {
     pos: [number, number];
     isFixed: boolean;
     isMidpoint: boolean;
+    /**
+     * 0 is right, 6 directions goint CCW
+     * NOTE: does not store HE for any incident to a center vertex
+     */
     halfEdges: (HalfEdge | null)[];
 
     constructor(
@@ -38,20 +42,39 @@ class Face {
     constructor(isExterior: boolean = false) {
         this.isExterior = isExterior;
     }
+
+    /**
+     * Returns the average of all points on the perimeter
+     */
+    centerPoint(): [number, number] {
+        const middlePos: [number, number] = [0, 0];
+        const oriEdge = this.edge;
+        let tempEdge = oriEdge;
+        let count = 0;
+        do {
+            middlePos[0] += tempEdge.a.pos[0];
+            middlePos[1] += tempEdge.a.pos[1];
+            tempEdge = tempEdge.next;
+            count++;
+        } while (tempEdge != oriEdge);
+        middlePos[0] /= count;
+        middlePos[1] /= count;
+        return middlePos;
+    }
 }
 
 class DCEL {
-    points: Map<Point, Point>;
-    halfEdges: Map<HalfEdge, HalfEdge>;
-    faces: Map<Face, Face>;
+    points: Set<Point>;
+    halfEdges: Set<HalfEdge>;
+    faces: Set<Face>;
     extFace: Face;
 
     constructor() {
-        this.points = new Map();
-        this.halfEdges = new Map();
-        this.faces = new Map();
+        this.points = new Set();
+        this.halfEdges = new Set();
+        this.faces = new Set();
         this.extFace = new Face(true);
-        this.faces.set(this.extFace, this.extFace);
+        this.faces.add(this.extFace);
     }
 }
 
@@ -62,14 +85,19 @@ export class GridGenerator {
 
     dcel: DCEL;
 
+    /**
+     * DO NOT USE WITH HEXAGONSIDELEN = 1
+     */
     constructor(hexagonSideLen: number, unitLen: number) {
         this.hexagonSideLen = hexagonSideLen;
         this.unitLen = unitLen;
         this.width = 2 * hexagonSideLen - 1;
         this.dcel = new DCEL();
         this.makeHexGrid();
-        this.joinRandomTriangles(0.6);
-        // this.subDivideFaces();
+        this.joinRandomTriangles(0.8);
+        this.subdivideEdges();
+        this.subdivideFaces();
+        this.relaxPoints(50, 0.0005);
     }
 
     private makeHexGrid() {
@@ -90,10 +118,18 @@ export class GridGenerator {
                 (((Math.floor(this.width / 2) - i) * this.unitLen) / 2) *
                 Math.sqrt(3);
             for (let j = 0; j < pointsInRow; j++) {
+                // const fixed =
+                //     (j == 0 || j == pointsInRow - 1) &&
+                //     (i == 0 || i == this.hexagonSideLen || i == this.width - 1);
+                const fixed =
+                    j == 0 ||
+                    j == pointsInRow - 1 ||
+                    i == 0 ||
+                    i == this.width - 1;
                 //initialize point pos
-                points[curPointInd] = new Point(xOffset, yOffset);
+                points[curPointInd] = new Point(xOffset, yOffset, fixed);
                 const curPoint = points[curPointInd];
-                this.dcel.points.set(curPoint, curPoint);
+                this.dcel.points.add(curPoint);
 
                 xOffset += this.unitLen;
 
@@ -123,9 +159,9 @@ export class GridGenerator {
                         const oToCur = new HalfEdge(oPoint, curPoint);
 
                         curPoint.halfEdges[curToODir] = curToO;
-                        this.dcel.halfEdges.set(curToO, curToO);
+                        this.dcel.halfEdges.add(curToO);
                         oPoint.halfEdges[oToCurDir] = oToCur;
-                        this.dcel.halfEdges.set(oToCur, oToCur);
+                        this.dcel.halfEdges.add(oToCur);
 
                         oToCur.twin = curToO;
                         curToO.twin = oToCur;
@@ -168,7 +204,7 @@ export class GridGenerator {
 
                     triangle.edge = edge1;
 
-                    this.dcel.faces.set(triangle, triangle);
+                    this.dcel.faces.add(triangle);
                 });
 
                 curPointInd++;
@@ -203,18 +239,7 @@ export class GridGenerator {
             oneOuterEdge = nextEdge;
         } while (oneOuterEdge != originalEdge);
 
-        this.dcel.halfEdges.forEach((he) => {
-            console.assert(
-                he.prev != null &&
-                    he.next != null &&
-                    he.face != null &&
-                    he.twin != null,
-                "BAD DCEL, NULL FIELD",
-            );
-        });
-        this.dcel.faces.forEach((face) => {
-            console.assert(face.edge != null, "BAD DCEL, NULL FIELD");
-        });
+        this.assertValidDcel();
     }
 
     private joinRandomTriangles(probability: number) {
@@ -298,9 +323,10 @@ export class GridGenerator {
 
             // delete edges
             let successfulDelete = true;
+            successfulDelete &&= this.dcel.faces.delete(oFace);
             successfulDelete &&= this.dcel.halfEdges.delete(curEdge);
             successfulDelete &&= this.dcel.halfEdges.delete(twinEdge);
-            console.assert(successfulDelete, "Failed to delete edges");
+            console.assert(successfulDelete, "Failed to delete something");
 
             count++;
         }
@@ -312,12 +338,14 @@ export class GridGenerator {
             attempts,
             desiredMerges,
         );
+        this.assertValidDcel();
     }
 
-    private subDivideFaces() {
+    private subdivideEdges() {
         //first create a middle point on each edge
         const seenEdges = new Set();
-        this.dcel.halfEdges.forEach((vy) => {
+        const oldEdges = Array.from(this.dcel.halfEdges.values());
+        oldEdges.forEach((vy) => {
             if (seenEdges.has(vy) || seenEdges.has(vy.twin)) {
                 return;
             }
@@ -327,8 +355,8 @@ export class GridGenerator {
             const uv = vy.prev;
             const yz = vy.next;
             const yv = vy.twin;
-            const zy = yv.twin.prev;
-            const vu = yv.twin.next;
+            const zy = yv.prev;
+            const vu = yv.next;
 
             const v = vy.a;
             const y = vy.b;
@@ -336,18 +364,19 @@ export class GridGenerator {
             const x = new Point(
                 (v.pos[0] + y.pos[0]) / 2,
                 (v.pos[1] + y.pos[1]) / 2,
-                false,
+                v.isFixed && y.isFixed,
                 true,
             );
+            this.dcel.points.add(x);
 
             const vx = new HalfEdge(v, x);
             const xy = new HalfEdge(x, y);
             const yx = new HalfEdge(y, x);
             const xv = new HalfEdge(x, v);
-            this.dcel.halfEdges.set(vx, vx);
-            this.dcel.halfEdges.set(xy, xy);
-            this.dcel.halfEdges.set(yx, yx);
-            this.dcel.halfEdges.set(xv, xv);
+            this.dcel.halfEdges.add(vx);
+            this.dcel.halfEdges.add(xy);
+            this.dcel.halfEdges.add(yx);
+            this.dcel.halfEdges.add(xv);
 
             yx.twin = xy;
             xy.twin = yx;
@@ -373,8 +402,8 @@ export class GridGenerator {
             yx.prev = zy;
 
             //delete vy, yv
-            vy.face.edge = vx;
-            yv.face.edge = yx;
+            vx.face.edge = vx;
+            yx.face.edge = yx;
             vy.twin = null!;
             yv.twin = null!;
             const vyDir = v.halfEdges.indexOf(vy);
@@ -392,6 +421,198 @@ export class GridGenerator {
 
             x.halfEdges[vyDir] = xy;
             x.halfEdges[yvDir] = xv;
+        });
+        this.assertValidDcel();
+    }
+
+    private subdivideFaces() {
+        const oldFaces = Array.from(this.dcel.faces.values());
+        oldFaces.forEach((face) => {
+            if (face.isExterior) return;
+            const edgesStartingAtMidpoint = [];
+            const oriEdge = face.edge;
+            let curEdge = oriEdge;
+            let edgeCount = 0;
+            const middlePosition = [0, 0];
+            const newFaces = [];
+            do {
+                if (curEdge.a.isMidpoint) {
+                    edgesStartingAtMidpoint.push(curEdge);
+                    newFaces.push(new Face());
+                }
+                middlePosition[0] += curEdge.a.pos[0];
+                middlePosition[1] += curEdge.b.pos[1];
+                // NOTE: DELETE THE FACE FOR NOW
+                curEdge.face = null!;
+                curEdge = curEdge.next;
+                edgeCount++;
+            } while (curEdge != oriEdge && edgeCount < 8);
+            middlePosition[0] /= edgeCount;
+            middlePosition[1] /= edgeCount;
+
+            // NOTE: DELETE THE FACE FOR NOW
+            this.dcel.faces.delete(face);
+
+            console.assert(
+                edgeCount == 8 || edgeCount == 6,
+                "BAD EDGE SUBDIVIDE",
+            );
+
+            const a = new Point(middlePosition[0], middlePosition[1]);
+            this.dcel.points.add(a);
+
+            const faceSides = edgesStartingAtMidpoint.length;
+            newFaces.forEach((face) => this.dcel.faces.add(face));
+            const midEdgesXA = Array(faceSides);
+            const midEdgesAX = Array(faceSides);
+
+            for (let i = 0; i < faceSides; i++) {
+                const xy = edgesStartingAtMidpoint[i];
+                const x = xy.a;
+                const vx = xy.prev;
+
+                const xa = new HalfEdge(x, a);
+                const ax = new HalfEdge(a, x);
+                midEdgesAX[i] = ax;
+                midEdgesXA[i] = xa;
+                this.dcel.halfEdges.add(xa);
+                this.dcel.halfEdges.add(ax);
+                ax.twin = xa;
+                xa.twin = ax;
+
+                vx.next = xa;
+                // xa.next = ax;
+                ax.next = xy;
+                xy.prev = ax;
+                // ax.prev = xa;
+                xa.prev = vx;
+            }
+
+            for (let i = 0; i < faceSides; i++) {
+                midEdgesXA[i].next =
+                    midEdgesAX[(i + faceSides - 1) % faceSides];
+                midEdgesAX[(i + faceSides - 1) % faceSides].prev =
+                    midEdgesXA[i];
+            }
+
+            for (let i = 0; i < edgesStartingAtMidpoint.length; i++) {
+                const xy = edgesStartingAtMidpoint[i];
+                const oriEdge = xy;
+                let tempEdge = oriEdge;
+                let faceCount = 0;
+                do {
+                    tempEdge.face = newFaces[i];
+                    tempEdge = tempEdge.next;
+                    newFaces[i].edge = tempEdge;
+                    faceCount++;
+                } while (tempEdge != oriEdge);
+
+                console.assert(faceCount == 4, "BAD FACE", faceCount);
+            }
+        });
+
+        this.assertValidDcel();
+    }
+
+    private relaxPoints(iterations: number, springConstant: number) {
+        type KinematicInfo = {
+            vel: [number, number];
+            acc: [number, number];
+        };
+        const info: Map<Point, KinematicInfo> = new Map();
+        this.dcel.points.forEach((point) => {
+            info.set(point, { vel: [0, 0], acc: [0, 0] });
+        });
+
+        function applyForce(
+            a: Point,
+            b: Point,
+            targetDist: number,
+            constant: number,
+        ) {
+            if (a.isFixed && b.isFixed) return;
+            const aToB = [b.pos[0] - a.pos[0], b.pos[1] - a.pos[1]];
+            const dist = Math.sqrt(Math.pow(aToB[0], 2) + Math.pow(aToB[1], 2));
+            const deltaD = dist - targetDist;
+            const force = [
+                aToB[0] * deltaD * constant,
+                aToB[1] * deltaD * constant,
+            ];
+            // const double = a.isFixed || b.isFixed;
+            // if (double) {
+            //     // one of edges is stationary
+            //     force[0] *= 2;
+            //     force[1] *= 2;
+            // }
+            if (!a.isFixed) {
+                info.get(a)!.acc[0] += force[0];
+                info.get(a)!.acc[1] += force[1];
+            }
+            if (!b.isFixed) {
+                info.get(b)!.acc[0] -= force[0];
+                info.get(b)!.acc[1] -= force[1];
+            }
+        }
+
+        for (let i = 0; i < iterations; i++) {
+            // apply forces
+            this.dcel.points.forEach((point) => {
+                info.get(point)!.acc[0] = 0;
+                info.get(point)!.acc[1] = 0;
+            });
+            const targetDist = this.unitLen / 2;
+            this.dcel.halfEdges.forEach((he) => {
+                if (he.face.isExterior) return;
+                applyForce(he.a, he.b, targetDist, springConstant);
+            });
+
+            this.dcel.points.forEach((point) => {
+                const oPoints = [];
+                for (let j = 0; j < 6; j++) {
+                    if (point.halfEdges[j] == null) continue;
+                    const face = point.halfEdges[j]!.face;
+                    if (face.isExterior) continue;
+                    const oriEdge = face.edge;
+                    let tempEdge = oriEdge;
+                    do {
+                        oPoints.push(tempEdge.a);
+                        tempEdge = tempEdge.next;
+                    } while (tempEdge != oriEdge);
+                }
+                oPoints.forEach((oPoint) => {
+                    applyForce(point, oPoint, targetDist, springConstant * 2);
+                });
+            });
+
+            // simulate
+            this.dcel.points.forEach((point) => {
+                const vel = info.get(point)!.vel;
+                const acc = info.get(point)!.acc;
+                vel[0] += acc[0]; // no delta time?
+                vel[1] += acc[1];
+                point.pos[0] += vel[0];
+                point.pos[1] += vel[1];
+            });
+        }
+    }
+
+    private assertValidDcel() {
+        this.dcel.halfEdges.forEach((he) => {
+            console.assert(
+                he.prev != null &&
+                    he.next != null &&
+                    he.face != null &&
+                    he.twin != null,
+                "BAD DCEL, NULL FIELD FOR EDGE",
+                he,
+            );
+        });
+        this.dcel.faces.forEach((face) => {
+            console.assert(
+                face.edge != null,
+                "BAD DCEL, NULL FIELD FOR FACE",
+                face,
+            );
         });
     }
 }
