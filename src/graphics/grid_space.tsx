@@ -52,6 +52,7 @@ export function GridSpace(
             geometry={geometry}
             onPointerDown={(e) => {
                 e.stopPropagation();
+                if (e.button != 0) return;
                 props.setMouseDown(true);
                 props.setStartingSelection(props.index);
                 props.setCurrentSelection(props.index);
@@ -59,6 +60,7 @@ export function GridSpace(
             }}
             onPointerUp={(e) => {
                 e.stopPropagation();
+                if (e.button != 0) return;
                 props.setMouseDown(false);
             }}
             onPointerOver={(e) => {

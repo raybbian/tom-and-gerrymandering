@@ -91,14 +91,15 @@ export default function GridCanvas({
         return mp;
     }, [grid]);
 
+    /**
+     * use this ref to programatically control the camera
+     */
     const cameraControlRef = useRef<CameraControls | null>(null);
 
+    //init the camera boundary
     useEffect(() => {
         const controls = cameraControlRef.current;
         if (controls == null) return;
-        // controls.mouseButtons.left = CameraControls.ACTION.NONE;
-        // controls.mouseButtons.middle = CameraControls.ACTION.ROTATE;
-        // controls.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
         controls.setBoundary(
             new THREE.Box3(
                 new THREE.Vector3(-1, 0, -1),
@@ -116,6 +117,12 @@ export default function GridCanvas({
                 maxPolarAngle={(2 * Math.PI) / 5}
                 minDistance={1}
                 maxDistance={5}
+                mouseButtons={{
+                    left: 0, //Action.NONE
+                    middle: 2, //Action.TRUCK
+                    wheel: 8, //Action.DOLLY
+                    right: 1, //Action.ROTATE
+                }}
             />
             <PerspectiveCamera makeDefault position={[0, 5, 0]} />
             <Stats />
