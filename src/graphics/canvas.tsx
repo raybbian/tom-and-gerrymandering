@@ -18,22 +18,25 @@ function Buildings(): React.ReactNode {
     const num = 1000;
     const batched = new THREE.BatchedMesh(num, num * 216);
 
-    const {scene} = useThree();
+    const { scene } = useThree();
 
-    const tower = new THREE.BoxGeometry(0.05, 0.1, 0.05).toNonIndexed();
-    const house = new THREE.BoxGeometry(0.03, 0.04, 0.03).toNonIndexed();
-    const tree = new THREE.ConeGeometry(0.005, 0.02).toNonIndexed();
+    const towerId = batched.addGeometry(new THREE.BoxGeometry(0.05, 0.1, 0.05));
+    const houseId = batched.addGeometry(
+        new THREE.BoxGeometry(0.03, 0.04, 0.03),
+    );
+    const treeId = batched.addGeometry(new THREE.ConeGeometry(0.005, 0.02));
 
     for (let i = 0; i < num; i++) {
         const radius = 2.35;
         const u = Math.random() * radius;
         const v = Math.random() * radius;
-        let x = 0, y = 0;
+        let x = 0,
+            y = 0;
 
         if (i < num / 3) {
             x = u - 0.5 * v;
             y = 0.866 * v;
-        } else if (i < 2 * num / 3) {
+        } else if (i < (2 * num) / 3) {
             x = u - 0.5 * v;
             y = -0.866 * v;
         } else {
@@ -45,25 +48,26 @@ function Buildings(): React.ReactNode {
         const noise = GameState.perlinPopulation.getNormalizedNoise(x, y, 0, 1);
         if (noise > highCutoff) {
             // if (Math.random() > noise) continue;
-            ii = batched.addGeometry(tower);
-        }
-        else if (noise > medCutoff) {
+            ii = batched.addInstance(towerId);
+        } else if (noise > medCutoff) {
             // if (Math.random() > noise) continue;
-            ii = batched.addGeometry(house);
-        }
-        else {
+            ii = batched.addInstance(houseId);
+        } else {
             // if (Math.random() < noise) continue;
-            ii = batched.addGeometry(tree);
+            ii = batched.addInstance(treeId);
         }
 
-        batched.setMatrixAt(ii, new THREE.Matrix4().compose(
-            new THREE.Vector3(x, 0, y),
-            new THREE.Quaternion(),
-            new THREE.Vector3(1, 1, 1),
-        ));
+        batched.setMatrixAt(
+            ii,
+            new THREE.Matrix4().compose(
+                new THREE.Vector3(x, 0, y),
+                new THREE.Quaternion(),
+                new THREE.Vector3(1, 1, 1),
+            ),
+        );
     }
     scene.add(batched);
-    return <></>
+    return <></>;
 }
 
 export default function GridCanvas({
@@ -196,41 +200,43 @@ export default function GridCanvas({
                 intensity={Math.PI}
             />
 
-            <Buildings/>
+            <Buildings />
 
-            {false && Array.from(gameState.districts.values()).map((districtSet) => {
-                if (districtSet.size == 0) return;
-                const faces = Array.from(districtSet).map(
-                    (cellInd) => gameState.cells[cellInd].dcelFace,
-                );
-                const color = Math.random() * 0xffffff;
-                const shell = grid.dcel.exteriorHEOfFaces(faces);
-                return shell.map((he, i) => {
+            {false &&
+                Array.from(gameState.districts.values()).map((districtSet) => {
+                    if (districtSet.size == 0) return;
+                    const faces = Array.from(districtSet).map(
+                        (cellInd) => gameState.cells[cellInd].dcelFace,
+                    );
+                    const color = Math.random() * 0xffffff;
+                    const shell = grid.dcel.exteriorHEOfFaces(faces);
+                    return shell.map((he, i) => {
+                        return (
+                            <Line
+                                key={i}
+                                points={borderLines.get(he)!}
+                                color={color}
+                            />
+                        );
+                    });
+                })}
+            {false &&
+                Array.from(grid.dcel.faces.values()).map((face, i) => {
+                    if (face.isExterior) return;
                     return (
-                        <Line
+                        <GridSpace
+                            points={gridPrisms.get(face)!}
+                            currentSelection={currentSelection.current}
+                            setCurrentSelection={setCurrentSelection}
+                            setMouseDown={setMouseDown}
+                            setStartingSelection={setStartingSelection}
+                            index={i}
                             key={i}
-                            points={borderLines.get(he)!}
-                            color={color}
+                            proportion={gameState.cells[i].voterProportion}
+                            population={gameState.cells[i].truePopulation}
                         />
                     );
-                });
-            })}
-            {false && Array.from(grid.dcel.faces.values()).map((face, i) => {
-                if (face.isExterior) return;
-                return (
-                    <GridSpace
-                        points={gridPrisms.get(face)!}
-                        currentSelection={currentSelection.current}
-                        setCurrentSelection={setCurrentSelection}
-                        setMouseDown={setMouseDown}
-                        setStartingSelection={setStartingSelection}
-                        index={i}
-                        key={i}
-                        proportion={gameState.cells[i].voterProportion}
-                        population={gameState.cells[i].truePopulation}
-                    />
-                );
-            })}
+                })}
         </Canvas>
     );
 }
