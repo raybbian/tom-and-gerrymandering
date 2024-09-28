@@ -49,10 +49,7 @@ export function GridSpace(
     }, [props.points]);
 
     const shift = 1.5;
-    const p =
-        props.population < 0.5
-            ? Math.pow(props.population, shift)
-            : 1 - Math.pow(1 - props.proportion, shift);
+    const p = props.proportion < 0.5 ? Math.pow(props.population, shift) : 1 - Math.pow(1 - props.proportion, shift);
 
     const col: Color = [0, 0, 0];
     // switch (p) {
@@ -63,8 +60,8 @@ export function GridSpace(
     //     case 3: col = [1, 1, 1];
     //     break;
     // }
-    const beige = [0.6, 0.5, 0.4];
-    const green = [0.1, 1.0, 0.0];
+    const beige = [0.0, 0.0, 0.0];
+    const green = [1.0, 1.0, 1.0];
     col[0] = lerp(green[0], beige[0], p);
     col[1] = lerp(green[1], beige[1], p);
     col[2] = lerp(green[2], beige[2], p);
