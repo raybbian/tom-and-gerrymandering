@@ -122,6 +122,7 @@ export class GameState {
     }
 
     campaignInCell(cellIndex: number, probability: number = 1) {
+        console.log("campaigning in cell " + cellIndex);
         const updateCellProportion = (cell: Cell, scale: number) => {
             const proportion = cell.voterProportion;
             cell.voterProportion = proportion + scale * probability * 0.5 * (1 - proportion)

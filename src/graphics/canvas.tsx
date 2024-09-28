@@ -34,11 +34,12 @@ export default function GridCanvas({
     function setCurrentSelection(val: number | null) {
         currentSelection.current = val;
         if (currentSelection.current != null && mouseDown.current) {
-            // console.log(startingSelection.current);
-            gameState.addCellToDistrict(
-                currentSelection.current,
-                startingSelection.current,
-            );
+            if (gameState.actionMode == "redistricting") {
+                gameState.addCellToDistrict(
+                    currentSelection.current,
+                    startingSelection.current,
+                );
+            }
             setRenderCount(renderCount + 1);
         }
         // console.log(val);
