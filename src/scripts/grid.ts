@@ -104,10 +104,10 @@ export class GridGenerator {
         this.width = 2 * hexagonSideLen - 1;
         this.dcel = new DCEL();
         this.makeHexGrid();
-        this.joinRandomTriangles(0.7);
+        this.joinRandomTriangles(0.8);
         this.subdivideEdges();
         this.subdivideFaces();
-        this.relaxPoints(75, 0.00005);
+        this.relaxPoints(50, 0.0005);
     }
 
     private makeHexGrid() {
@@ -570,36 +570,25 @@ export class GridGenerator {
                 info.get(point)!.acc[0] = 0;
                 info.get(point)!.acc[1] = 0;
             });
-            const pointToAHE: Map<Point, HalfEdge> = new Map();
             const targetDist = this.unitLen / 2;
             this.dcel.halfEdges.forEach((he) => {
                 if (he.face.isExterior) return;
                 applyForce(he.a, he.b, targetDist, springConstant);
-                pointToAHE.set(he.a, he);
             });
 
             this.dcel.points.forEach((point) => {
-                const oPoints: Set<Point> = new Set();
-
-                // find one edge to start the cycle of iteration, at least one edge should be in this array
-                const oriEdge = pointToAHE.get(point)!;
-                let tempEdge = oriEdge;
-                //CW rotation of edges
-                do {
-                    console.assert(tempEdge!.a == point, "BAD EDGE");
-                    if (!tempEdge.face.isExterior) {
-                        // ROTATE AROUND CURRENT FACE ADD ALL POINTS,
-                        let faceEdge = tempEdge;
-                        do {
-                            oPoints.add(faceEdge!.a);
-                            faceEdge = faceEdge!.next;
-                        } while (faceEdge != tempEdge);
-                    }
-                    // MOVE EDGE
-                    tempEdge = tempEdge.twin.next;
-                } while (tempEdge != oriEdge);
-                oPoints.delete(point);
-
+                const oPoints = [];
+                for (let j = 0; j < 6; j++) {
+                    if (point.halfEdges[j] == null) continue;
+                    const face = point.halfEdges[j]!.face;
+                    if (face.isExterior) continue;
+                    const oriEdge = face.edge;
+                    let tempEdge = oriEdge;
+                    do {
+                        oPoints.push(tempEdge.a);
+                        tempEdge = tempEdge.next;
+                    } while (tempEdge != oriEdge);
+                }
                 oPoints.forEach((oPoint) => {
                     applyForce(point, oPoint, targetDist, springConstant * 2);
                 });
