@@ -1,17 +1,21 @@
 import { Face, GridGenerator } from "./grid";
+import { PerlinNoise } from "./perlin";
 
 class Cell {
     public population: 1 | 2 | 3;
+    public truePopulation: number;
     public voterProportion: number;
     public district: number | null;
     public dcelFace: Face;
     constructor(
         population: 1 | 2 | 3,
+        truePopulation: number,
         voterProportion: number,
         dcelFace: Face,
     ) {
         // an int: [1, 2, 3]
         this.population = population;
+        this.truePopulation = truePopulation;
         // a float in the range [0, 1]
         this.voterProportion = voterProportion;
         // 0 if the cell is not part of a district, otherwise the district number it is part of
@@ -28,11 +32,32 @@ export class GameState {
     public numDistricts: number;
     // (district number, Set<cells in the district>)
     public districts: Map<number, Set<number>>;
+
+    static perlinPopulation = new PerlinNoise(1);
+    static perlinVoterDistribution = new PerlinNoise(1);
+
     constructor(grid: GridGenerator) {
-        // TODO: add noise generation logic
         this.cells = Array.from(grid.dcel.faces).map(
-            (face) => new Cell(1, 1, face),
+            (face) => {
+                const center = face.centerPoint();
+
+                let voterPopulation: 1 | 2 | 3 = 1;
+                const noise = GameState.perlinPopulation.getNormalizedNoise(...center, 0, 1);
+                if (noise > 0.73) {
+                    voterPopulation = 3;
+                }
+                else if (noise > 0.5) {
+                    voterPopulation = 2;
+                }
+                else {
+                    voterPopulation = 1;
+                }
+
+                const voterProportion = GameState.perlinVoterDistribution.getNormalizedNoise(...center, .20, .80);
+                return new Cell(voterPopulation, noise, voterProportion, face);
+            }
         );
+
         // this.currentCellSelection = null;
         // this.mouseDown = false;
         // this.currentDistrictSelection = 0;

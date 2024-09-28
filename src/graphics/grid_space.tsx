@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { useMemo, useRef, useState } from "react";
-import { ThreeElements, useFrame } from "@react-three/fiber";
+import { Color, ThreeElements, useFrame } from "@react-three/fiber";
 import { ConvexGeometry } from "three/addons/geometries/ConvexGeometry.js";
+import { lerp } from "three/src/math/MathUtils.js";
 
 export function GridSpace(
     props: ThreeElements["mesh"] & {
@@ -11,6 +12,8 @@ export function GridSpace(
         setMouseDown: (val: boolean) => void;
         setStartingSelection: (val: number) => void;
         index: number;
+        proportion: number;
+        population: number;
     },
 ) {
     const meshRef = useRef<THREE.Mesh>(null!);
@@ -45,6 +48,24 @@ export function GridSpace(
         return new ConvexGeometry(props.points); // Generate the geometry using the points prop
     }, [props.points]);
 
+    const shift = 1.5;
+    const p = props.population < 0.5 ? Math.pow(props.population, shift) : 1 - Math.pow(1 - props.proportion, shift);
+
+    let col: Color = [0,0,0];
+    // switch (p) {
+    //     case 1: col = [0, 0, 0];
+    //     break;
+    //     case 2: col = [.2, .2, .2];
+    //     break;
+    //     case 3: col = [1, 1, 1];
+    //     break;
+    // }
+    const beige = [0.6, 0.5, 0.4];
+    const green = [0.1, 1.0, 0.0];
+    col[0] = lerp(green[0], beige[0], p);
+    col[1] = lerp(green[1], beige[1], p);
+    col[2] = lerp(green[2], beige[2], p);
+
     return (
         <mesh
             {...props}
@@ -67,7 +88,7 @@ export function GridSpace(
             }}
             onPointerOut={() => setHover(false)}
         >
-            <meshStandardMaterial color={hovered ? "hotpink" : "#2f74c0"} />
+            <meshStandardMaterial color={hovered ? "hotpink" : col} />
         </mesh>
     );
 }
