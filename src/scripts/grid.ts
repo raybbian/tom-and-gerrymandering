@@ -61,6 +61,16 @@ class Face {
         middlePos[1] /= count;
         return middlePos;
     }
+
+    pointList(): Point[] {
+        const res = [];
+        let tempEdge = this.edge;
+        do {
+            res.push(tempEdge.a);
+            tempEdge = tempEdge.next;
+        } while (tempEdge != this.edge);
+        return res;
+    }
 }
 
 class DCEL {
