@@ -6,7 +6,7 @@ import {
     GridGenerator,
     HalfEdge,
 } from "@/scripts/grid";
-import { CameraControls, PerspectiveCamera, Stats } from "@react-three/drei";
+import { CameraControls, PerspectiveCamera } from "@react-three/drei";
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -138,7 +138,7 @@ function Buildings({
             opacity: 0.6,
             transparent: true,
         });
-        cityMat.color = new THREE.Color(0.2, 0.2, 0.2);
+        cityMat.color = new THREE.Color(0.2, 0.2, 0.3);
         cityBatched.material = cityMat;
 
         const treeMat = new THREE.MeshStandardMaterial({
@@ -284,7 +284,7 @@ export default function GridCanvas({
             mp.set(face, [
                 ...pointList.map(
                     (point) =>
-                        new THREE.Vector3(point.pos[0], -0.1, point.pos[1]),
+                        new THREE.Vector3(point.pos[0], -300.1, point.pos[1]),
                 ),
                 ...pointList.map(
                     (point) => new THREE.Vector3(point.pos[0], 0, point.pos[1]),
@@ -327,8 +327,7 @@ export default function GridCanvas({
                     right: 1, //Action.ROTATE
                 }}
             />
-            <PerspectiveCamera makeDefault position={[0, 5, 0]} />
-            <Stats />
+            <PerspectiveCamera makeDefault position={[2, 2, -1]} />
             <spotLight
                 position={[10, 10, 10]}
                 angle={0.15}
@@ -424,7 +423,7 @@ export default function GridCanvas({
                                             gridPrisms.get(face)!,
                                         )
                                     }
-                                    scale={[1, 0.01, 1]}
+                                    scale={[1, 0.00001, 1]}
                                     position={[0, 0.001, 0]}
                                 >
                                     <meshStandardMaterial
