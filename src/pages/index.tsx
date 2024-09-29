@@ -35,6 +35,7 @@ export default function Home() {
     const NUM_LEVELS = 5;
     const grids = useRef<GridGenerator[]>(Array(NUM_LEVELS));
     const states = useRef<GameState[]>(Array(NUM_LEVELS));
+    const [money, setMoney] = useState<number>(12);
 
     useEffect(() => {
         const levelPromises: Promise<void>[] = Array(NUM_LEVELS);
@@ -50,21 +51,31 @@ export default function Home() {
         });
     }, []);
 
+    const [rerenderGrid, setRerenderGrid] = useState(0);
+
     const gridCanvas = useMemo(() => {
         return (
             <GridCanvas
+                rerenderGrid={rerenderGrid}
                 setDistrictInfo={setDistrictInfo}
                 grid={grids.current[curLevel]}
+                money={money}
+                setMoney={setMoney}
                 gameState={states.current[curLevel]}
             />
         );
-    }, [curLevel]);
+    }, [curLevel, money, rerenderGrid]);
 
     const levelTransition = useMemo(() => {
         if (transitioning != -1) {
             return (
                 <LevelTransition
                     onScreenCovered={() => {
+                        states.current[
+                            (transitioning + NUM_LEVELS - 1) % NUM_LEVELS
+                        ].cells.forEach((cell) => {
+                            cell.voterProportion -= Math.random() * 0.2;
+                        });
                         setCurLevel(transitioning);
                     }}
                     onTransitionFinished={() => {
@@ -74,18 +85,18 @@ export default function Home() {
             );
         }
         return <></>;
-    }, [transitioning]);
+    }, [transitioning, states]);
 
     const menuContainer = {
         hidden: {
             x: "30vw",
             opacity: 1,
-            transition: { duration: 0.3, ease: "easeIn" },
+            transition: { duration: 0.2, ease: "easeIn" },
         },
         visible: {
             x: 0,
             opacity: 1,
-            transition: { duration: 0.3, delay: 0.4, ease: "easeOut" },
+            transition: { duration: 0.2, delay: 0.3, ease: "easeOut" },
         },
     };
 
@@ -107,7 +118,27 @@ export default function Home() {
                                 className="absolute z-10"
                             >
                                 <RedistrictMenu
-                                    onClickHandler={() => {
+                                    resetHandler={() => {
+                                        console.log("resetting");
+
+                                        // states.current[curLevel].districts = new Map();
+                                        Array.from(
+                                            states.current[curLevel].cells,
+                                        ).forEach((cell, i) => {
+                                            states.current[
+                                                curLevel
+                                            ].removeCellFromDistrict(i);
+                                        });
+                                        states.current[curLevel].susness = 0;
+                                        console.log(
+                                            "districts: " +
+                                                states.current[curLevel]
+                                                    .districts.size,
+                                        );
+                                        setRerenderGrid((e) => e + 1);
+                                        setUiRenderCount((e) => e + 1);
+                                    }}
+                                    submitHandler={() => {
                                         if (
                                             states.current[
                                                 curLevel
@@ -116,9 +147,9 @@ export default function Home() {
                                             setTransitioning(
                                                 (curLevel + 1) % NUM_LEVELS,
                                             );
+                                            setMoney((e: number) => e + 12);
                                         }
                                     }}
-                                    cost={50}
                                     remainingDistricts={
                                         states.current[curLevel].maxDistricts -
                                         states.current[curLevel].numDistricts
@@ -161,6 +192,7 @@ export default function Home() {
                         gameState={states.current[curLevel]}
                         level={curLevel}
                         setRenderCount={setUiRenderCount}
+                        money={money}
                     />
                     {gridCanvas}
                 </>

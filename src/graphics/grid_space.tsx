@@ -11,6 +11,7 @@ export function GridSpace(
         setCurrentSelection: (val: number | null) => void;
         setMouseDown: (val: boolean) => void;
         setStartingSelection: (val: number) => void;
+        removeCellFromDistrict: (val: number) => void;
         index: number;
         proportion: number;
         population: number;
@@ -23,7 +24,7 @@ export function GridSpace(
         if (hovered) {
             meshRef.current.position.y += delta * 0.5;
             meshRef.current.position.y = Math.min(
-                0.05,
+                0.01,
                 meshRef.current.position.y,
             );
         } else {
@@ -40,7 +41,10 @@ export function GridSpace(
     }, [props.points]);
 
     const shift = 1.5;
-    const p = props.proportion < 0.5 ? Math.pow(props.population, shift) : 1 - Math.pow(1 - props.proportion, shift);
+    const p =
+        props.proportion < 0.5
+            ? Math.pow(props.population, shift)
+            : 1 - Math.pow(1 - props.proportion, shift);
 
     const col: Color = [0, 0, 0];
     // switch (p) {
@@ -51,11 +55,11 @@ export function GridSpace(
     //     case 3: col = [1, 1, 1];
     //     break;
     // }
-    const beige = [0.0, 0.0, 0.0];
-    const green = [1.0, 1.0, 1.0];
-    col[0] = lerp(green[0], beige[0], p);
-    col[1] = lerp(green[1], beige[1], p);
-    col[2] = lerp(green[2], beige[2], p);
+    const us = [1.0, 1.0, 0.0];
+    const them = [0.0, 0.0, 1.0];
+    col[0] = lerp(them[0], us[0], p);
+    col[1] = lerp(them[1], us[1], p);
+    col[2] = lerp(them[2], us[2], p);
 
     return (
         <mesh
@@ -68,7 +72,11 @@ export function GridSpace(
                 props.setMouseDown(true);
                 props.setStartingSelection(props.index);
                 props.setCurrentSelection(props.index);
-                console.log("set starting selection");
+            }}
+            onDoubleClick={(e) => {
+                e.stopPropagation();
+                if (e.button != 0) return;
+                props.removeCellFromDistrict(props.index);
             }}
             onPointerUp={(e) => {
                 e.stopPropagation();

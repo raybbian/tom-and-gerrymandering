@@ -1,4 +1,4 @@
-import { countDistrictVotes, determineDistrictSusness, validateBadDistricts } from "./district";
+import { countDistrictPopulation, countDistrictVotes, determineBlobness, findDistrictVariation, validateBadDistricts } from "./district";
 import { DCEL, Face, GridGenerator, HalfEdge } from "./grid";
 import { PerlinNoise } from "./perlin";
 
@@ -41,14 +41,17 @@ export class GameState {
     // (district number, Set<cells in the district>)
     public districts: Map<number, Set<number>>;
 
-    static perlinPopulation = new PerlinNoise(1);
-    static perlinVoterDistribution = new PerlinNoise(1);
+    perlinPopulation: PerlinNoise;
+    perlinVoterDistribution: PerlinNoise;
 
     public totalElectoralVotes: number;
     public susness: number;
 
     constructor(grid: GridGenerator) {
         this.actionMode = "campaigning";
+
+        this.perlinPopulation = new PerlinNoise(1, Math.random());
+        this.perlinVoterDistribution = new PerlinNoise(1, Math.random());
 
         this.dcel = grid.dcel;
         this.faceToCell = new Map();
@@ -58,7 +61,7 @@ export class GameState {
                 const center = face.centerPoint();
 
                 let voterPopulation: 1 | 2 | 3 = 1;
-                const noise = GameState.perlinPopulation.getNormalizedNoise(...center, 0, 1);
+                const noise = this.perlinPopulation.getNormalizedNoise(...center, 0, 1);
                 if (noise > 0.73) {
                     voterPopulation = 3;
                 }
@@ -69,7 +72,7 @@ export class GameState {
                     voterPopulation = 1;
                 }
 
-                const voterProportion = GameState.perlinVoterDistribution.getNormalizedNoise(...center, .20, .80);
+                const voterProportion = this.perlinVoterDistribution.getNormalizedNoise(...center, .20, .80);
                 const cell = new Cell(voterPopulation, noise, voterProportion, face);
                 this.faceToCell.set(face, cell);
                 return cell;
@@ -134,10 +137,12 @@ export class GameState {
         if (previousDistrict != null) {
             this.districts.get(previousDistrict)!.delete(cellIndex);
             if (this.districts.get(previousDistrict)!.size == 0) {
-                this.numDistricts--;
+                this.districts.delete(previousDistrict);
+                // this.numDistricts--;
             }
         }
         this.cells[cellIndex].district = null;
+        this.updateNumDistricts();
     }
 
     campaignInCell(cellIndex: number, probability: number = 1) {
@@ -169,15 +174,20 @@ export class GameState {
     }
 
     updateSusness(): number {
-        let susness = 0;
+        const blobness_weight = 0.6;
+        const variance_weight = 0.15;
+
+        let blobness = 0;
         for (let i = 1; i <= this.numDistricts; i++) {
-            const newsusness = determineDistrictSusness(this, i)!;
-            // console.log("susness for district " + i + " is " + newsusness);
-            susness += newsusness;
+            blobness += determineBlobness(this, i)!;
         }
-        this.susness = susness;
-        // console.log("update susness to " + susness);
-        return susness;
+
+        const variance = findDistrictVariation(this);
+        console.log("blobness is " + blobness + " and variance is " + variance);
+
+        this.susness = blobness_weight * blobness + variance_weight * variance;
+
+        return this.susness;
     }
 
     validateNextState(): "not all cells are in a district" | "bad districts!" | "not enough districts!" | "too sus!" | null {
