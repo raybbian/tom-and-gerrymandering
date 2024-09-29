@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, Color, useThree } from "@react-three/fiber";
 import {
     exteriorHEOfFaces,
     Face,
@@ -12,6 +12,8 @@ import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ConvexGeometry } from "three/examples/jsm/Addons.js";
 import { PerlinNoise } from "@/scripts/perlin";
+import { votesInDistrict } from "@/scripts/district";
+import { lerp } from "three/src/math/MathUtils.js";
 
 const highCutoff = 0.73;
 const medCutoff = 0.5;
@@ -343,12 +345,49 @@ export default function GridCanvas({
             {buildingsComp}
 
             {Array.from(gameState.districts.entries()).map(
-                ([_, districtSet]) => {
+                ([districtInd, districtSet]) => {
                     if (districtSet.size == 0) return;
                     const faces = Array.from(districtSet).map(
                         (cellInd) => gameState.cells[cellInd].dcelFace,
                     );
                     const shell = exteriorHEOfFaces(faces);
+
+                    const [forMe, forBad] = votesInDistrict(
+                        gameState,
+                        districtInd,
+                    );
+                    const proportion = forMe / (forMe + forBad);
+
+                    const shift = 1.5;
+                    const p =
+                        proportion < 0.5
+                            ? Math.pow(proportion, shift)
+                            : 1 - Math.pow(1 - proportion, shift);
+                    const col: Color = [0, 0, 0];
+                    const us = [1.0, 1.0, 0.0];
+                    const them = [0.0, 0.0, 1.0];
+                    col[0] = lerp(them[0], us[0], p);
+                    col[1] = lerp(them[1], us[1], p);
+                    col[2] = lerp(them[2], us[2], p);
+
+                    col[0] = Math.floor(col[0] * 256);
+                    col[1] = Math.floor(col[1] * 256);
+                    col[2] = Math.floor(col[2] * 256);
+
+                    function componentToHex(c: number) {
+                        const hex = c.toString(16);
+                        return hex.length == 1 ? "0" + hex : hex;
+                    }
+
+                    function rgbToHex(r: number, g: number, b: number) {
+                        return (
+                            "#" +
+                            componentToHex(r) +
+                            componentToHex(g) +
+                            componentToHex(b)
+                        );
+                    }
+
                     return [
                         ...shell.map((he, i) => {
                             return (
@@ -358,7 +397,9 @@ export default function GridCanvas({
                                         new ConvexGeometry(borderLines.get(he)!)
                                     }
                                 >
-                                    <meshStandardMaterial color={"hotpink"} />
+                                    <meshStandardMaterial
+                                        color={rgbToHex(...col)}
+                                    />
                                 </mesh>
                             );
                         }),

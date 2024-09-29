@@ -43,7 +43,7 @@ export function GridSpace(
     const shift = 1.5;
     const p =
         props.proportion < 0.5
-            ? Math.pow(props.population, shift)
+            ? Math.pow(props.proportion, shift)
             : 1 - Math.pow(1 - props.proportion, shift);
 
     const col: Color = [0, 0, 0];
