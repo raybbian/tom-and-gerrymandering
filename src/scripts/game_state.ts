@@ -36,6 +36,7 @@ export class GameState {
     // public mouseDown: boolean;
     // public currentDistrictSelection: number | null;
     public numDistricts: number;
+    public maxDistricts: number;
     // (district number, Set<cells in the district>)
     public districts: Map<number, Set<number>>;
 
@@ -43,7 +44,7 @@ export class GameState {
     static perlinVoterDistribution = new PerlinNoise(1);
 
     public totalElectoralVotes: number;
-
+    public susness: number;
 
     constructor(grid: GridGenerator) {
         this.actionMode = "campaigning";
@@ -78,12 +79,14 @@ export class GameState {
         // this.mouseDown = false;
         // this.currentDistrictSelection = 0;
         this.numDistricts = 0;
+        this.maxDistricts = 10;
         this.districts = new Map();
         for (let i = 1; i <= 200; i++) {
             this.districts.set(i, new Set());
         }
 
         this.totalElectoralVotes = 0;
+        this.susness = 0;
     }
 
     setActionMode(mode: "redistricting" | "campaigning") {
@@ -154,6 +157,18 @@ export class GameState {
         }
     }
 
+    updateSusness(): number {
+        let susness = 0;
+        for (let i = 1; i <= this.numDistricts; i++) {
+            const newsusness = determineDistrictSusness(this, i)!;
+            // console.log("susness for district " + i + " is " + newsusness);
+            susness += newsusness;
+        }
+        this.susness = susness;
+        // console.log("update susness to " + susness);
+        return susness;
+    }
+
     validateNextState(): "not all cells are in a district" | "bad districts!" | "too sus!" | null {
         // If bad districts exist or some cells not in district, return error
         // Otherwise, determine susness and apply probability;
@@ -165,10 +180,7 @@ export class GameState {
             return "bad districts!"
         }
 
-        let susness = 0;
-        for (let i = 0; i < this.numDistricts; i++) {
-            susness += determineDistrictSusness(this, i)!;
-        }
+        const susness = this.updateSusness();
         console.log("susness: " + susness);
         if (susness > 3.5) {
             return "too sus!";
