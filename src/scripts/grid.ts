@@ -120,6 +120,9 @@ export class GridGenerator {
         this.unitLen = unitLen;
         this.width = 2 * hexagonSideLen - 1;
         this.dcel = new DCEL();
+    }
+
+    async init() {
         this.makeHexGrid();
         this.joinRandomTriangles(0.8);
         this.subdivideEdges();
