@@ -20,6 +20,7 @@ export default function DialoguePopup({text, image, onClickHandler}: {text: stri
           },
         },
       };
+      let total = 0;
     
     return(
         // <div className="w-[60vw] h-[10vw] bg-primary border-4 border-black rounded-[1vw] p-[1vw]">
@@ -35,26 +36,27 @@ export default function DialoguePopup({text, image, onClickHandler}: {text: stri
         //     </div>
         // </div>
         <div className="flex">
-            <div className="w-[10vw] h-[10vw] bg-secondary rounded-l-[1vw] border-l-4 border-t-4 border-b-4 border-black flex justify-center items-center">
+            <div className="w-[10vw] h-[10vw] bg-secondary rounded-l-[1vw] border-l-4 border-t-4 border-b-4 border-black flex justify-center items-center z-50">
                 <div className=' w-[90%] h-[90%] border-4 border-black rounded-l-[1vw]'>
                     <Image src={image}  alt="tom" className="object-cover h-[100%] rounded-l-[1vw]"></Image>
                 </div>
                 
             </div>
             <button onClick={() => onClickHandler()} className="w-[60vw] h-[10vw] bg-primary border-4 border-black rounded-r-[1vw] p-[1vw] flex">
-                <div className="flex items-center h-[100%] flex-wrap content-center justify-center w-[100%] p-[2%] relative ">
-                    {text.split("").map((letter, i:number) => {
+                <div className="flex items-center h-[100%] flex-wrap content-center justify-center w-[100%] p-[2%] relative text-[1.2vw] z-50">
+                    {text.split(" ").map((letter, i:number) => {
+                        total += letter.length;
                         return (
                             <motion.span
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{
-                                duration: 0.02,
-                                delay: basedelay + i / 100 
+                                duration: 0.04,
+                                delay: basedelay + total / 120
                             }}
                             key={i}
                             >
-                             {letter === " " ? "\u00A0" : letter}
+                             {letter + "\u00A0"}
                             </motion.span>
                         );
                        

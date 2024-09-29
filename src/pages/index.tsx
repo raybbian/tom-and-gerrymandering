@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import LevelTransition from "@/components/level-transition";
 import tomhappy from "@/assets/tomhappy.jpg";
 import tomsilly from "@/assets/tomsilly.png";
+import tomalarmed from "@/assets/tomalarmed.png"
 
 export default function Home() {
     const [_, setUiRenderCount] = useState(0);
@@ -139,19 +140,34 @@ export default function Home() {
                                         setUiRenderCount((e) => e + 1);
                                     }}
                                     submitHandler={() => {
-                                        if (
-                                            states.current[
+                                        const submission = states.current[
                                                 curLevel
-                                            ].validateNextState() == null
-                                        ) {
+                                            ].validateNextState();
+                                        if (submission == "not all cells are in a district") {
+                                            addDialogue("Each cell needs to be in a district!", tomalarmed);
+                                        } else if (submission == "bad districts!") {
+                                            addDialogue("Some of your districts are disconnected!", tomalarmed);
+                                        } else if (submission == "too sus!") {
+                                            addDialogue("Your redistricting plan is too sussy! The governor will veto it!", tomalarmed);
+                                        } else if (submission == "not enough districts!") {
+                                            addDialogue("You need to have exactly " + states.current[curLevel].maxDistricts + " districts!", tomalarmed);
+                                        } else if (submission == "not enough votes!") {
+                                            addDialogue("Your redistricting plan doesn't win you enough votes!", tomalarmed);
+                                        } else {
+                                        // if (
+                                        //     states.current[
+                                        //         curLevel
+                                        //     ].validateNextState() == null
+                                        // ) {
                                             const electoral_votes = states.current[curLevel].totalElectoralVotes;
                                             let vote_fraction = electoral_votes / states.current[curLevel].maxDistricts;
                                             vote_fraction = ~~(vote_fraction * 100);
-                                            console.log("You got " + electoral_votes + " electoral votes, and now control " + vote_fraction + "% of congress.");
+                                            let extraDialogue = "";
                                             if (vote_fraction >= 65) {
-                                                console.log("You got over 65% of the electoral votes. You get a bonus $300K!")
+                                                extraDialogue = " Since you got over 65% of the electoral votes, you get a bonus $300K!";
                                                 setMoney((e: number) => e + 3);
                                             }
+                                            addDialogue("You got " + electoral_votes + " electoral votes, and now control " + vote_fraction + "% of congress." + extraDialogue, tomhappy);
                                             setTransitioning(
                                                 (curLevel + 1) % NUM_LEVELS,
                                             );
@@ -183,7 +199,7 @@ export default function Home() {
                             initial={{ y: "15vw" }}
                             animate={{ y: 0 }}
                             exit={{ y: "15vw" }}
-                            className="absolute z-10 bottom-0 w-full"
+                            className="absolute z-50 bottom-0 w-full"
                         >
                             
                             <DialogueContainer image={dialogueImage}  text={dialogueText} onClickHandler={() => setDialogueVisible(false)} />
