@@ -2,6 +2,12 @@ import * as THREE from "three";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Face, GridGenerator, HalfEdge } from "@/scripts/grid";
 import {
+    exteriorHEOfFaces,
+    Face,
+    GridGenerator,
+    HalfEdge,
+} from "@/scripts/grid";
+import {
     CameraControls,
     Line,
     PerspectiveCamera,
@@ -126,23 +132,29 @@ export default function GridCanvas({
     function setCurrentSelection(val: number | null) {
         currentSelection.current = val;
         if (currentSelection.current != null && mouseDown.current) {
-            // console.log(startingSelection.current);
-            gameState.addCellToDistrict(
-                currentSelection.current,
-                startingSelection.current,
-            );
+            if (gameState.actionMode == "redistricting") {
+                gameState.addCellToDistrict(
+                    currentSelection.current,
+                    startingSelection.current,
+                );
+            }
             setRenderCount(renderCount + 1);
         }
         // console.log(val);
     }
     function setStartingSelection(val: number) {
-        const district = gameState.cells[val].district;
-        if (district == null) {
-            // console.log("set starting selection to new dist");
-            startingSelection.current = gameState.numDistricts + 1;
+        if (gameState.actionMode == "redistricting") {
+            const district = gameState.cells[val].district;
+            console.log("District for index " + val + " is " + district);
+            if (district == null) {
+                // console.log("set starting selection to new dist");
+                startingSelection.current = gameState.numDistricts + 1;
+            } else {
+                // console.log("set starting selection to existing dist " + console.log(gameState.cells[val].district))
+                startingSelection.current = district;
+            }
         } else {
-            // console.log("set starting selection to existing dist " + console.log(gameState.cells[val].district))
-            startingSelection.current = district;
+            gameState.campaignInCell(val);
         }
     }
     function setMouseDown(val: boolean) {
@@ -185,6 +197,14 @@ export default function GridCanvas({
         return mp;
     }, [grid]);
 
+    const districtColors = useMemo(() => {
+        const mp: Map<number, number> = new Map();
+        Array.from(grid.dcel.faces.values()).forEach((_, i) => {
+            mp.set(i, Math.random() * 0xffffff);
+        });
+        return mp;
+    }, [grid]);
+
     /**
      * use this ref to programatically control the camera
      */
@@ -203,7 +223,9 @@ export default function GridCanvas({
     }, []);
 
     return (
-        <Canvas>
+        <Canvas
+            onPointerOut={() => setCurrentSelection(null)}
+        >
             <ambientLight intensity={Math.PI / 2} />
             <CameraControls
                 ref={cameraControlRef}
@@ -232,7 +254,7 @@ export default function GridCanvas({
                 decay={0}
                 intensity={Math.PI}
             />
-
+        
             {buildingsComp.current}
 
             {
@@ -253,8 +275,7 @@ export default function GridCanvas({
                         );
                     });
                 })}
-            {
-                Array.from(grid.dcel.faces.values()).map((face, i) => {
+            {Array.from(grid.dcel.faces.values()).map((face, i) => {
                     if (face.isExterior) return;
                     return (
                         <GridSpace
@@ -270,6 +291,42 @@ export default function GridCanvas({
                         />
                     );
                 })}
+
+            {Array.from(gameState.districts.entries()).map(
+                ([districtInd, districtSet]) => {
+                    if (districtSet.size == 0) return;
+                    const faces = Array.from(districtSet).map(
+                        (cellInd) => gameState.cells[cellInd].dcelFace,
+                    );
+                    const shell = exteriorHEOfFaces(faces);
+                    return shell.map((he, i) => {
+                        return (
+                            <Line
+                                key={i}
+                                points={borderLines.get(he)!}
+                                color={districtColors.get(districtInd)}
+                            />
+                        );
+                    });
+                },
+            )}
+            {Array.from(grid.dcel.faces.values()).map((face, i) => {
+                if (face.isExterior) return;
+                return (
+                    <GridSpace
+                        points={gridPrisms.get(face)!}
+                        currentSelection={currentSelection.current}
+                        setCurrentSelection={setCurrentSelection}
+                        setMouseDown={setMouseDown}
+                        setStartingSelection={setStartingSelection}
+                        index={i}
+                        key={i}
+                        proportion={gameState.cells[i].voterProportion}
+                        population={gameState.cells[i].truePopulation}
+                        // actionMode={gameState.actionMode}
+                    />
+                );
+            })}
         </Canvas>
     );
 }
