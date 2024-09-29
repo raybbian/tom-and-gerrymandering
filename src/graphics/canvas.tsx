@@ -319,7 +319,7 @@ export default function GridCanvas({
             {buildingsComp}
 
             {Array.from(gameState.districts.entries()).map(
-                ([districtInd, districtSet]) => {
+                ([_, districtSet]) => {
                     if (districtSet.size == 0) return;
                     const faces = Array.from(districtSet).map(
                         (cellInd) => gameState.cells[cellInd].dcelFace,

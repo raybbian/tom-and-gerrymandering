@@ -11,7 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import LevelTransition from "@/components/level-transition";
 
 export default function Home() {
-    const [uiRenderCount, setUiRenderCount] = useState(0);
+    const [_, setUiRenderCount] = useState(0);
 
     const [curLevel, setCurLevel] = useState(-1);
     const [districtInfo, setDistrictInfo] = useState([0, 0, 0]);
@@ -150,6 +150,7 @@ export default function Home() {
                                         states.current[curLevel].maxDistricts -
                                         states.current[curLevel].numDistricts
                                     }
+                                    susness={states.current[curLevel].susness}
                                 />
                             </motion.div>
                         ) : (
@@ -172,8 +173,6 @@ export default function Home() {
                         miceSupporters={districtInfo[2]}
                     />
                     <Controls
-                        susness={states.current[curLevel].susness}
-                        mode={states.current[curLevel].actionMode}
                         gameState={states.current[curLevel]}
                         level={curLevel}
                         setRenderCount={setUiRenderCount}
