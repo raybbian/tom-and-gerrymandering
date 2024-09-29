@@ -16,7 +16,7 @@ export default function Home() {
 
     const menuContainer = {
         hidden: { x: "30vw", opacity: 1, transition: { duration: 0.3, ease: "easeIn" } },
-        visible: { x: 0, opacity: 1, transition: { duration: 0.3, delay: 0.4, ease: "easeIn"} },
+        visible: { x: 0, opacity: 1, transition: { duration: 0.3, delay: 0.4, ease: "easeOut"} },
 
     };
 
