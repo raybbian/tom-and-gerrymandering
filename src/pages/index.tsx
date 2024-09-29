@@ -83,7 +83,17 @@ export default function Home() {
     const grids = useRef<GridGenerator[]>(Array(NUM_LEVELS));
     const states = useRef<GameState[]>(Array(NUM_LEVELS));
     const [money, setMoney] = useState<number>(12);
-
+    function getMaxDistricts(i: number) {
+        if (i == 0 || i == 1) {
+            return 5;
+        } else if (i == 2) {
+            return 7;
+        } else if (i == 3) {
+            return 9;
+        } else {
+            return 11;
+        }
+    }
     useEffect(() => {
         const levelPromises: Promise<void>[] = Array(NUM_LEVELS);
         for (let i = 0; i < NUM_LEVELS; i++) {
@@ -92,7 +102,7 @@ export default function Home() {
         }
         Promise.all(levelPromises).then(() => {
             for (let i = 0; i < NUM_LEVELS; i++) {
-                states.current[i] = new GameState(grids.current[i], i + 6);
+                states.current[i] = new GameState(grids.current[i], getMaxDistricts(i));
             }
             setCurLevel(0);
         });
