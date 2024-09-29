@@ -15,16 +15,15 @@ const highCutoff = 0.73;
 const medCutoff = 0.5;
 
 function Buildings(): React.ReactNode {
-    const num = 1000;
-    const batched = new THREE.BatchedMesh(num, num * 216);
+    const num = 3000;
+    const batched = new THREE.BatchedMesh(num * 10, num * 10 * 216);
 
     const { scene } = useThree();
 
-    const towerId = batched.addGeometry(new THREE.BoxGeometry(0.05, 0.1, 0.05));
-    const houseId = batched.addGeometry(
-        new THREE.BoxGeometry(0.03, 0.04, 0.03),
-    );
-    const treeId = batched.addGeometry(new THREE.ConeGeometry(0.005, 0.02));
+    const towerId = batched.addGeometry(new THREE.BoxGeometry(0.05, 0.2, 0.05));
+    const houseId = batched.addGeometry(new THREE.BoxGeometry(0.03, 0.05, 0.03));
+    const treeId1 = batched.addGeometry(new THREE.ConeGeometry(0.018, 0.06));
+    const treeId2 = batched.addGeometry(new THREE.ConeGeometry(0.025, 0.1));
 
     for (let i = 0; i < num; i++) {
         const radius = 2.35;
@@ -47,25 +46,59 @@ function Buildings(): React.ReactNode {
         let ii = 0;
         const noise = GameState.perlinPopulation.getNormalizedNoise(x, y, 0, 1);
         if (noise > highCutoff) {
-            // if (Math.random() > noise) continue;
-            ii = batched.addInstance(towerId);
-        } else if (noise > medCutoff) {
-            // if (Math.random() > noise) continue;
-            ii = batched.addInstance(houseId);
-        } else {
-            // if (Math.random() < noise) continue;
-            ii = batched.addInstance(treeId);
-        }
+            if (Math.random() > noise) continue;
+            else ii = batched.addInstance(towerId);
 
-        batched.setMatrixAt(
-            ii,
-            new THREE.Matrix4().compose(
-                new THREE.Vector3(x, 0, y),
-                new THREE.Quaternion(),
-                new THREE.Vector3(1, 1, 1),
-            ),
-        );
+            let scale = (noise - highCutoff) / (1 - highCutoff) + 0.5;
+            if (Math.random() > 0.9) scale *= 2.0;
+
+            const yo = scale * 0.2 / 2;
+            batched.setMatrixAt(
+                ii,
+                new THREE.Matrix4().compose(
+                    new THREE.Vector3(x, yo, y),
+                    new THREE.Quaternion(),
+                    new THREE.Vector3(Math.random() * 0.2 + 0.9, scale, Math.random() * 0.2 + 0.9),
+                ),
+            );
+        } else if (noise > medCutoff) {
+            if (Math.random() > noise - 0.23) {
+                if (Math.random() < 0.3) ii = batched.addInstance(treeId1);
+                else continue;
+            }
+            else ii = batched.addInstance(houseId);
+
+            batched.setMatrixAt(
+                ii,
+                new THREE.Matrix4().compose(
+                    new THREE.Vector3(x, 0, y),
+                    new THREE.Quaternion(),
+                    new THREE.Vector3(Math.random() * 0.2 + 0.9, Math.random() * 0.6 + 0.8, Math.random() * 0.2 + 0.9),
+                ),
+            );
+        } else {
+            if (noise > 0.3 && Math.random() < 0.95) continue;
+            const cluster = Math.random() * 5;
+            for (let j = 0; j < cluster; j++) {
+                if (Math.random() < 0.3) ii = batched.addInstance(treeId2);
+                else ii = batched.addInstance(treeId1);
+                const xo = Math.random() * 0.1 - 0.05;
+                const yo = Math.random() * 0.1 - 0.05;
+
+                batched.setMatrixAt(
+                    ii,
+                    new THREE.Matrix4().compose(
+                        new THREE.Vector3(x + xo, 0, y + yo),
+                        new THREE.Quaternion(),
+                        new THREE.Vector3(1, Math.random() * 0.3 + 1.0, 1),
+                    ),
+                );
+            }
+        }
     }
+    const mat = new THREE.MeshStandardMaterial();
+    mat.color = new THREE.Color(0.1, 0.15, 0.15);
+    batched.material = mat;
     scene.add(batched);
     return <></>;
 }
@@ -116,7 +149,7 @@ export default function GridCanvas({
         mouseDown.current = val;
     }
 
-    // const buildingsComp = useRef(<Buildings />);
+    const buildingsComp = useRef(<Buildings />);
 
     const borderLines = useMemo(() => {
         const mp: Map<HalfEdge, [THREE.Vector3, THREE.Vector3]> = new Map();
@@ -176,7 +209,7 @@ export default function GridCanvas({
                 ref={cameraControlRef}
                 minPolarAngle={0}
                 maxPolarAngle={(2 * Math.PI) / 5}
-                minDistance={1}
+                minDistance={0}
                 maxDistance={5}
                 mouseButtons={{
                     left: 0, //Action.NONE
@@ -200,9 +233,9 @@ export default function GridCanvas({
                 intensity={Math.PI}
             />
 
-            <Buildings />
+            {buildingsComp.current}
 
-            {false &&
+            {
                 Array.from(gameState.districts.values()).map((districtSet) => {
                     if (districtSet.size == 0) return;
                     const faces = Array.from(districtSet).map(
@@ -220,7 +253,7 @@ export default function GridCanvas({
                         );
                     });
                 })}
-            {false &&
+            {
                 Array.from(grid.dcel.faces.values()).map((face, i) => {
                     if (face.isExterior) return;
                     return (
