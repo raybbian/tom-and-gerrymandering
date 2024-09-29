@@ -119,10 +119,14 @@ export default function GridCanvas({
     grid,
     gameState,
     setDistrictInfo,
+    money,
+    setMoney,
 }: {
     grid: GridGenerator;
     gameState: GameState;
     setDistrictInfo: (val: number[]) => void;
+    money: number,
+    setMoney: (fn: ((val: number) => number)) => void;
 }) {
     console.log("Canvas re-render?");
 
@@ -174,7 +178,10 @@ export default function GridCanvas({
                 startingSelection.current = district;
             }
         } else {
-            gameState.campaignInCell(val);
+            if (money >= 10) {
+                setMoney((e: number) => e - 10);
+                gameState.campaignInCell(val);
+            }
         }
     }
     function setMouseDown(val: boolean) {

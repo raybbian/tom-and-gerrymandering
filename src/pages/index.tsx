@@ -24,6 +24,7 @@ export default function Home() {
     const NUM_LEVELS = 5;
     const grids = useRef<GridGenerator[]>(Array(NUM_LEVELS));
     const states = useRef<GameState[]>(Array(NUM_LEVELS));
+    const [money, setMoney] = useState<number>(12);
 
     useEffect(() => {
         const levelPromises: Promise<void>[] = Array(NUM_LEVELS);
@@ -44,10 +45,12 @@ export default function Home() {
             <GridCanvas
                 setDistrictInfo={setDistrictInfo}
                 grid={grids.current[curLevel]}
+                money={money}
+                setMoney={setMoney}
                 gameState={states.current[curLevel]}
             />
         );
-    }, [curLevel]);
+    }, [curLevel, money]);
 
     const levelTransition = useMemo(() => {
         if (transitioning != -1) {
@@ -104,6 +107,7 @@ export default function Home() {
                                             setTransitioning(
                                                 (curLevel + 1) % NUM_LEVELS,
                                             );
+                                            setMoney((e: number) => e + 12);
                                         }
                                     }}
                                     cost={50}
@@ -138,6 +142,7 @@ export default function Home() {
                         gameState={states.current[curLevel]}
                         level={curLevel}
                         setRenderCount={setUiRenderCount}
+                        money={money}
                     />
                     {gridCanvas}
                 </>
