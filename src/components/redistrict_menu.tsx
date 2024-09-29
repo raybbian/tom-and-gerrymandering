@@ -1,5 +1,6 @@
 import Image from "next/image";
 import cheese from "../assets/cheesefunny.png";
+import mousetrap from "../assets/mousetrap.png";
 import { motion } from "framer-motion";
 import SusMeter from "./sus_meter";
 
@@ -29,7 +30,7 @@ export default function RedistrictMenu({
                     <div className="absolute h-[50%] w-[100%] top-[6vw] flex flex-col justify-center items-center  ">
                         <div className="w-[10vw] ">
                             <Image
-                                src={cheese}
+                                src={mousetrap}
                                 alt="cheese"
                                 className="h-[100%] w-[100%] object-cover"
                             />
