@@ -22,13 +22,13 @@ export function GridSpace(
 
     useFrame((_, delta) => {
         if (hovered) {
-            meshRef.current.position.y += delta * 0.5;
+            meshRef.current.position.y += delta * 0.2;
             meshRef.current.position.y = Math.min(
                 0.01,
                 meshRef.current.position.y,
             );
         } else {
-            meshRef.current.position.y -= delta * 0.5;
+            meshRef.current.position.y -= delta * 0.2;
             meshRef.current.position.y = Math.max(
                 0,
                 meshRef.current.position.y,
@@ -43,7 +43,7 @@ export function GridSpace(
     const shift = 1.5;
     const p =
         props.proportion < 0.5
-            ? Math.pow(props.population, shift)
+            ? Math.pow(props.proportion, shift)
             : 1 - Math.pow(1 - props.proportion, shift);
 
     const col: Color = [0, 0, 0];
@@ -93,7 +93,7 @@ export function GridSpace(
                 props.setCurrentSelection(null);
             }}
         >
-            <meshStandardMaterial color={hovered ? "hotpink" : col} />
+            <meshStandardMaterial color={hovered ? [col[0] + 0.35, col[1] + 0.35, col[2] + 0.35]  : col} />
         </mesh>
     );
 }

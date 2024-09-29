@@ -1,17 +1,19 @@
 import * as THREE from "three";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, Color, useThree } from "@react-three/fiber";
 import {
     exteriorHEOfFaces,
     Face,
     GridGenerator,
     HalfEdge,
 } from "@/scripts/grid";
-import { CameraControls, PerspectiveCamera, Stats } from "@react-three/drei";
+import { CameraControls, PerspectiveCamera } from "@react-three/drei";
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ConvexGeometry } from "three/examples/jsm/Addons.js";
 import { PerlinNoise } from "@/scripts/perlin";
+import { votesInDistrict } from "@/scripts/district";
+import { lerp } from "three/src/math/MathUtils.js";
 
 const highCutoff = 0.73;
 const medCutoff = 0.5;
@@ -136,7 +138,7 @@ function Buildings({
             opacity: 0.6,
             transparent: true,
         });
-        cityMat.color = new THREE.Color(0.2, 0.2, 0.2);
+        cityMat.color = new THREE.Color(0.2, 0.2, 0.3);
         cityBatched.material = cityMat;
 
         const treeMat = new THREE.MeshStandardMaterial({
@@ -282,7 +284,7 @@ export default function GridCanvas({
             mp.set(face, [
                 ...pointList.map(
                     (point) =>
-                        new THREE.Vector3(point.pos[0], -0.1, point.pos[1]),
+                        new THREE.Vector3(point.pos[0], -300.1, point.pos[1]),
                 ),
                 ...pointList.map(
                     (point) => new THREE.Vector3(point.pos[0], 0, point.pos[1]),
@@ -325,8 +327,7 @@ export default function GridCanvas({
                     right: 1, //Action.ROTATE
                 }}
             />
-            <PerspectiveCamera makeDefault position={[0, 5, 0]} />
-            <Stats />
+            <PerspectiveCamera makeDefault position={[2, 2, -1]} />
             <spotLight
                 position={[10, 10, 10]}
                 angle={0.15}
@@ -342,13 +343,62 @@ export default function GridCanvas({
 
             {buildingsComp}
 
+            <mesh position={[0, -1, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1000, 1000, 1000]} onPointerEnter={(e) => {
+                e.stopPropagation();
+                setMouseDown(false);
+            }}>
+                <planeGeometry />
+                <meshStandardMaterial
+                    color={[0, 0, 0]}
+                    opacity={0}
+                    transparent={true}
+                />
+            </mesh>
+
             {Array.from(gameState.districts.entries()).map(
-                ([_, districtSet]) => {
+                ([districtInd, districtSet]) => {
                     if (districtSet.size == 0) return;
                     const faces = Array.from(districtSet).map(
                         (cellInd) => gameState.cells[cellInd].dcelFace,
                     );
                     const shell = exteriorHEOfFaces(faces);
+
+                    const [forMe, forBad] = votesInDistrict(
+                        gameState,
+                        districtInd,
+                    );
+                    const proportion = forMe / (forMe + forBad);
+
+                    const shift = 1.5;
+                    const p =
+                        proportion < 0.5
+                            ? Math.pow(proportion, shift)
+                            : 1 - Math.pow(1 - proportion, shift);
+                    const col: Color = [0, 0, 0];
+                    const us = [1.0, 1.0, 0.0];
+                    const them = [0.0, 0.0, 1.0];
+                    col[0] = lerp(them[0], us[0], p);
+                    col[1] = lerp(them[1], us[1], p);
+                    col[2] = lerp(them[2], us[2], p);
+
+                    col[0] = Math.floor(col[0] * 256);
+                    col[1] = Math.floor(col[1] * 256);
+                    col[2] = Math.floor(col[2] * 256);
+
+                    function componentToHex(c: number) {
+                        const hex = c.toString(16);
+                        return hex.length == 1 ? "0" + hex : hex;
+                    }
+
+                    function rgbToHex(r: number, g: number, b: number) {
+                        return (
+                            "#" +
+                            componentToHex(r) +
+                            componentToHex(g) +
+                            componentToHex(b)
+                        );
+                    }
+
                     return [
                         ...shell.map((he, i) => {
                             return (
@@ -358,7 +408,9 @@ export default function GridCanvas({
                                         new ConvexGeometry(borderLines.get(he)!)
                                     }
                                 >
-                                    <meshStandardMaterial color={"hotpink"} />
+                                    <meshStandardMaterial
+                                        color={rgbToHex(...col)}
+                                    />
                                 </mesh>
                             );
                         }),
@@ -371,7 +423,7 @@ export default function GridCanvas({
                                             gridPrisms.get(face)!,
                                         )
                                     }
-                                    scale={[1, 0.01, 1]}
+                                    scale={[1, 0.00001, 1]}
                                     position={[0, 0.001, 0]}
                                 >
                                     <meshStandardMaterial
@@ -399,7 +451,7 @@ export default function GridCanvas({
                         key={i}
                         proportion={gameState.cells[i].voterProportion}
                         population={gameState.cells[i].truePopulation}
-                        // actionMode={gameState.actionMode}
+                    // actionMode={gameState.actionMode}
                     />
                 );
             })}
