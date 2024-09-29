@@ -159,17 +159,6 @@ export default function Home() {
 
     return (
         <div className="bg-blue-950 w-[100dvw] h-[100dvh] absolute z-0 overflow-hidden">
-            <button
-                className="bg-black"
-                onClick={() =>
-                    addDialogue(
-                        "CHEEEEEEEEEEEEEEEEEEEEEEEEEESE (cheddar)",
-                        tomsilly,
-                    )
-                }
-            >
-                asdfjkasldkjf;alsd;laskjd
-            </button>
             {levelTransition}
             {curLevel != -1 && (
                 <>
