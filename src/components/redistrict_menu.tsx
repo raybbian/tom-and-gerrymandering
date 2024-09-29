@@ -2,7 +2,7 @@ import Image from 'next/image'
 import cheese from '../assets/cheesefunny.png'
 import {motion} from 'framer-motion'
 
-export default function RedistrictMenu({onClickHandler, cost}: {onClickHandler: () => void, cost: number}) {
+export default function RedistrictMenu({onClickHandler, cost, remainingDistricts}: {onClickHandler: () => void, cost: number, remainingDistricts: number}) {
     return (
         <div className="flex absolute z-10 left-[80vw] top-[2vw] ">
             <div className="h-[calc(5vw+8px)] w-[calc(22vw+7px)] right-[0vw] top-[1vw]  ribbon absolute inline-block bg-black">
@@ -20,8 +20,7 @@ export default function RedistrictMenu({onClickHandler, cost}: {onClickHandler: 
                                 <Image src={cheese} alt="cheese"  className='h-[100%] w-[100%] object-cover'/>
                             </div>
                             <div className="flex flex-col mt-[3%] text-[1vw] font-semibold text-textBlack text-">
-                                <p>Cost: ${cost}</p>
-                                <p>sex meter: {10}%</p>
+                                <p>Remaining districts: {remainingDistricts}</p>
                             </div>
                         </div>
                 </div>

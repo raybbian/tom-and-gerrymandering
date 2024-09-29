@@ -18,7 +18,6 @@ export function GridSpace(
 ) {
     const meshRef = useRef<THREE.Mesh>(null!);
     const [hovered, setHover] = useState(false);
-    const [prevHovered, setPrevHovered] = useState(false);
 
     useFrame((_, delta) => {
         if (hovered) {
@@ -27,20 +26,12 @@ export function GridSpace(
                 0.05,
                 meshRef.current.position.y,
             );
-            if (!prevHovered) {
-                props.setCurrentSelection(props.index);
-                setPrevHovered(true);
-            }
         } else {
             meshRef.current.position.y -= delta * 0.5;
             meshRef.current.position.y = Math.max(
                 0,
                 meshRef.current.position.y,
             );
-            setPrevHovered(false);
-            if (props.currentSelection == props.index) {
-                props.setCurrentSelection(null);
-            }
         }
     });
 
@@ -86,9 +77,13 @@ export function GridSpace(
             }}
             onPointerOver={(e) => {
                 e.stopPropagation();
+                props.setCurrentSelection(props.index);
                 setHover(true);
             }}
-            onPointerOut={() => setHover(false)}
+            onPointerOut={() => {
+                setHover(false);
+                props.setCurrentSelection(null);
+            }}
         >
             <meshStandardMaterial color={hovered ? "hotpink" : col} />
         </mesh>
