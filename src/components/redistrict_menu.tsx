@@ -1,14 +1,14 @@
-import cheese from '../assets/cheesefunny.png';
-import Image from 'next/image';
+import Image from 'next/image'
+import cheese from '../assets/cheesefunny.png'
 
-export default function CampaignMenu({onClickHandler, cost}: {onClickHandler: () => void, cost: number}) {
-    return(
+export default function RedistrictMenu({onClickHandler, cost}: {onClickHandler: () => void, cost: number}) {
+    return (
         <div className="flex absolute z-10 left-[80vw] top-[2vw] ">
             <div className="h-[calc(5vw+8px)] w-[calc(22vw+7px)] right-[0vw] top-[1vw]  ribbon absolute inline-block bg-black">
-                <div className="h-[5vw] w-[22vw] top-[4px]  bg-red absolute right-[0vw] ribbon flex flex-col-reverse justify-center">
-                    <h1 className=" font-Montserrat font-semibold text-lg text-textWhite w-100 h-100  text-center relative left-[1.3vw]">CAMPAIGN</h1>
+                <div className="h-[5vw] w-[22vw] top-[4px]  bg-lblue absolute right-[0vw] ribbon flex flex-col-reverse justify-center">
+                    <h1 className=" font-Montserrat font-semibold text-lg text-textWhite w-100 h-100  text-center relative left-[1.3vw]">REDISTRICT</h1>
                 </div>
-                <div className="h-[5vw] w-[22vw] top-[4px]  bg-yellow-200 absolute right-[0vw] ribbonAccent flex flex-col-reverse justify-center">
+                <div className="h-[5vw] w-[22vw] top-[4px]  bg-dblue absolute right-[0vw] ribbonAccent flex flex-col-reverse justify-center">
                     
                 </div>
             </div>
@@ -25,10 +25,9 @@ export default function CampaignMenu({onClickHandler, cost}: {onClickHandler: ()
                         </div>
                 </div>
                 <button onClick={() => onClickHandler()} className="bg-secondary w-[100%] h-[10vh] rounded-bl-[1vw] border-l-4 border-b-4 border-black">
-                    <h1 className='font-sans font-semibold text-lg'>LAUNCH</h1>
+                    <h1 className='font-sans font-semibold text-lg'>SUBMIT</h1>
                 </button>
             </div>
         </div>
-        
-    );
+    )
 }
