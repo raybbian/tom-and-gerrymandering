@@ -9,7 +9,7 @@ export default function DialogueContainer({text}: {text: string}) {
             
 
             <div className=" absolute bottom-0 z-20 ">
-                <DialoguePopup text={text}/>
+                <DialoguePopup text={text} onClickHandler={()=>console.log("continue dialogue")}/>
             </div>
             
         </div>
