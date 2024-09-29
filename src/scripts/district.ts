@@ -82,7 +82,7 @@ export function votesInDistrict(
 export function findDistrictVariation(state: GameState): number {
     const districtSums: number[] = [];
     let totalPopulation = 0;
-    Array.from(state.districts.entries()).forEach(([districtInd, districtSet]) => {
+    Array.from(state.districts.values()).forEach((districtSet) => {
         let districtSum = 0;
         Array.from(districtSet.values()).forEach((e) => {
             districtSum += state.cells[e].truePopulation;
@@ -90,14 +90,16 @@ export function findDistrictVariation(state: GameState): number {
         totalPopulation += districtSum;
         districtSums.push(districtSum);
     });
-    const mean = totalPopulation/state.districts.size;
+    const mean = totalPopulation / state.districts.size;
 
-    const squaredDifferences = districtSums.map(num => {
+    const squaredDifferences = districtSums.map((num) => {
         const difference = num - mean;
         return difference * difference;
     });
 
-    const variance = squaredDifferences.reduce((acc, val) => acc + val, 0) / districtSums.length;
+    const variance =
+        squaredDifferences.reduce((acc, val) => acc + val, 0) /
+        districtSums.length;
     console.log(districtSums);
     return variance;
 }

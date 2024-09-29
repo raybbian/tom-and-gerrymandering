@@ -1,4 +1,9 @@
-import { countDistrictPopulation, countDistrictVotes, determineBlobness, findDistrictVariation, validateBadDistricts } from "./district";
+import {
+    countDistrictVotes,
+    determineBlobness,
+    findDistrictVariation,
+    validateBadDistricts,
+} from "./district";
 import { DCEL, Face, GridGenerator, HalfEdge } from "./grid";
 import { PerlinNoise } from "./perlin";
 
@@ -56,28 +61,38 @@ export class GameState {
         this.dcel = grid.dcel;
         this.faceToCell = new Map();
 
-        this.cells = Array.from(grid.dcel.faces).map(
-            (face) => {
-                const center = face.centerPoint();
+        this.cells = Array.from(grid.dcel.faces).map((face) => {
+            const center = face.centerPoint();
 
-                let voterPopulation: 1 | 2 | 3 = 1;
-                const noise = this.perlinPopulation.getNormalizedNoise(...center, 0, 1);
-                if (noise > 0.73) {
-                    voterPopulation = 3;
-                }
-                else if (noise > 0.5) {
-                    voterPopulation = 2;
-                }
-                else {
-                    voterPopulation = 1;
-                }
-
-                const voterProportion = this.perlinVoterDistribution.getNormalizedNoise(...center, .20, .80);
-                const cell = new Cell(voterPopulation, noise, voterProportion, face);
-                this.faceToCell.set(face, cell);
-                return cell;
+            let voterPopulation: 1 | 2 | 3 = 1;
+            const noise = this.perlinPopulation.getNormalizedNoise(
+                ...center,
+                0,
+                1,
+            );
+            if (noise > 0.73) {
+                voterPopulation = 3;
+            } else if (noise > 0.5) {
+                voterPopulation = 2;
+            } else {
+                voterPopulation = 1;
             }
-        );
+
+            const voterProportion =
+                this.perlinVoterDistribution.getNormalizedNoise(
+                    ...center,
+                    0.2,
+                    0.8,
+                );
+            const cell = new Cell(
+                voterPopulation,
+                noise,
+                voterProportion,
+                face,
+            );
+            this.faceToCell.set(face, cell);
+            return cell;
+        });
 
         // this.currentCellSelection = null;
         // this.mouseDown = false;
@@ -129,7 +144,7 @@ export class GameState {
                 "district size is: " + this.districts.get(district)!.size,
             );
         }
-        this.updateNumDistricts()
+        this.updateNumDistricts();
     }
 
     removeCellFromDistrict(cellIndex: number) {
@@ -149,8 +164,9 @@ export class GameState {
         console.log("campaigning in cell " + cellIndex);
         const updateCellProportion = (cell: Cell, scale: number) => {
             const proportion = cell.voterProportion;
-            cell.voterProportion = proportion + scale * probability * 0.5 * (1 - proportion)
-        }
+            cell.voterProportion =
+                proportion + scale * probability * 0.5 * (1 - proportion);
+        };
         const start = this.cells[cellIndex];
 
         const visited = new Set<Cell>();
@@ -165,11 +181,15 @@ export class GameState {
             let edge = initialEdge;
             do {
                 const cell = this.faceToCell.get(edge.twin.face)!;
-                if (!visited.has(cell) && (weight + 1 <= 2) && !cell.dcelFace.isExterior) {
+                if (
+                    !visited.has(cell) &&
+                    weight + 1 <= 2 &&
+                    !cell.dcelFace.isExterior
+                ) {
                     stack.push([cell, weight + 1]);
                 }
                 edge = edge.next;
-            } while (edge != initialEdge)
+            } while (edge != initialEdge);
         }
     }
 
@@ -190,7 +210,12 @@ export class GameState {
         return this.susness;
     }
 
-    validateNextState(): "not all cells are in a district" | "bad districts!" | "not enough districts!" | "too sus!" | null {
+    validateNextState():
+        | "not all cells are in a district"
+        | "bad districts!"
+        | "not enough districts!"
+        | "too sus!"
+        | null {
         // If bad districts exist or some cells not in district, return error
         // Otherwise, determine susness and apply probability;
         // if susness check passes determine votes
@@ -198,7 +223,7 @@ export class GameState {
         if (badDistricts == "not all cells are in a district") {
             return "not all cells are in a district";
         } else if (badDistricts.length != 0) {
-            return "bad districts!"
+            return "bad districts!";
         }
 
         if (this.numDistricts != this.maxDistricts) {

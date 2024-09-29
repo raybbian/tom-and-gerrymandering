@@ -1,23 +1,18 @@
 import cheesefunny from "../assets/cheesefunny.png";
 import Image from "next/image";
-import SusMeter from "./sus_meter";
 import { Dispatch, SetStateAction } from "react";
 import { GameState } from "@/scripts/game_state";
 import { motion } from "framer-motion";
 
 export default function Controls({
-    mode,
     level,
     gameState,
     setRenderCount,
-    susness,
-    money
+    money,
 }: {
-    mode: string;
     level: number;
     gameState: GameState;
     setRenderCount: Dispatch<SetStateAction<number>>;
-    susness: number;
     money: number;
 }) {
     return (
@@ -49,26 +44,21 @@ export default function Controls({
                 </div>
             </div>
             <div className="h-[8vw] w-[18vw] rounded-b-[1vw] bg-primary border-black border-l-4 border-b-4 border-r-4 flex flex-col  items-center">
-                <div className="flex items-center relative mt-[-.2vw]">
+                <div className="flex items-center relative mt-[1vw]">
                     <p className="font-bold text-[2vw]">Level {level} </p>
                 </div>
-                <div className="flex mt-[-.2vw] items-center">
+                <div className="flex mt-[.3vw] items-center">
                     <Image
                         src={cheesefunny}
                         alt="currency"
                         className=" object-cover w-[2vw] relative z-[6]"
                     ></Image>{" "}
                     <p className=" font-bold"> : </p>
-                    <div className="bg-secondary w-[4vw] h-[1vw] rounded-[1vw] relative left-[0.2vw] z-[5] flex justify-center items-center border-black border-2">
-                        <p className="relative font-sans font-semibold text-[.8vw]">
+                    <div className="bg-secondary w-[6vw] h-[2vw] rounded-[1vw] relative left-[0.2vw] z-[5] flex justify-center items-center border-black border-2">
+                        <p className="relative font-sans font-semibold text-[1.2vw]">
                             ${money / 10}M
                         </p>
                     </div>
-                </div>
-
-                <div className="w-[80%] flex flex-col items-center mt-[.2vw]">
-                    <p className=" font-sans font-bold text-[1vw]">SUSNESS</p>
-                    <SusMeter currentValue={susness} maxValue={1} />
                 </div>
             </div>
         </div>
