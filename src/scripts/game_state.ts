@@ -1,4 +1,4 @@
-import { countDistrictVotes, determineDistrictSusness, validateBadDistricts } from "./district";
+import { countDistrictPopulation, countDistrictVotes, determineBlobness, findDistrictVariation, validateBadDistricts } from "./district";
 import { DCEL, Face, GridGenerator, HalfEdge } from "./grid";
 import { PerlinNoise } from "./perlin";
 
@@ -169,15 +169,20 @@ export class GameState {
     }
 
     updateSusness(): number {
-        let susness = 0;
+        const blobness_weight = 0.6;
+        const variance_weight = 0.15;
+
+        let blobness = 0;
         for (let i = 1; i <= this.numDistricts; i++) {
-            const newsusness = determineDistrictSusness(this, i)!;
-            // console.log("susness for district " + i + " is " + newsusness);
-            susness += newsusness;
+            blobness += determineBlobness(this, i)!;
         }
-        this.susness = susness;
-        // console.log("update susness to " + susness);
-        return susness;
+
+        const variance = findDistrictVariation(this);
+        console.log("blobness is " + blobness + " and variance is " + variance);
+
+        this.susness = blobness_weight * blobness + variance_weight * variance;
+
+        return this.susness;
     }
 
     validateNextState(): "not all cells are in a district" | "bad districts!" | "not enough districts!" | "too sus!" | null {
