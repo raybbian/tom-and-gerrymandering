@@ -119,10 +119,12 @@ export default function GridCanvas({
     grid,
     gameState,
     setDistrictInfo,
+    rerenderGrid,
 }: {
     grid: GridGenerator;
     gameState: GameState;
     setDistrictInfo: (val: number[]) => void;
+    rerenderGrid: number;
 }) {
     console.log("Canvas re-render?");
 
@@ -136,6 +138,12 @@ export default function GridCanvas({
      * Use to toggle a render after modifying ref
      */
     const [renderCount, setRenderCount] = useState(0);
+
+    function removeCellFromDistrict(val: number) {
+        console.log("removing " + val);
+        gameState.removeCellFromDistrict(currentSelection.current!);
+        setRenderCount(e => e + 1);
+    }
 
     function setCurrentSelection(val: number | null) {
         // console.log("set cat supps to " + (val == null ? -1 : val));
@@ -160,7 +168,7 @@ export default function GridCanvas({
             }
             setRenderCount(renderCount + 1);
         }
-        // console.log(val);
+        console.log("curr " + val);
     }
     function setStartingSelection(val: number) {
         if (gameState.actionMode == "redistricting") {
@@ -308,6 +316,7 @@ export default function GridCanvas({
                         setCurrentSelection={setCurrentSelection}
                         setMouseDown={setMouseDown}
                         setStartingSelection={setStartingSelection}
+                        removeCellFromDistrict={removeCellFromDistrict}
                         index={i}
                         key={i}
                         proportion={gameState.cells[i].voterProportion}

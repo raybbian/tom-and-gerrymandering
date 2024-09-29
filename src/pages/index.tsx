@@ -38,15 +38,18 @@ export default function Home() {
         });
     }, []);
 
+    const [rerenderGrid, setRerenderGrid] = useState(0);
+
     const gridCanvas = useMemo(() => {
         return (
             <GridCanvas
+                rerenderGrid={rerenderGrid}
                 setDistrictInfo={setDistrictInfo}
                 grid={grids.current[curLevel]}
                 gameState={states.current[curLevel]}
             />
         );
-    }, [curLevel]);
+    }, [curLevel, rerenderGrid]);
 
     const levelTransition = useMemo(() => {
         if (transitioning != -1) {
@@ -78,12 +81,23 @@ export default function Home() {
                     />
                     {states.current[curLevel].actionMode == "redistricting"
                     ? <RedistrictMenu
-                        onClickHandler={() => {
+                        resetHandler={() => {
+                            console.log("resetting");
+                            
+                            // states.current[curLevel].districts = new Map();
+                            Array.from(states.current[curLevel].cells).forEach((cell, i) => {
+                                states.current[curLevel].removeCellFromDistrict(i);
+                            })
+                            states.current[curLevel].susness = 0;
+                            console.log("districts: " + states.current[curLevel].districts.size);
+                            setRerenderGrid(e => e + 1);
+                            setUiRenderCount(e => e + 1);
+                        }}
+                        submitHandler={() => {
                             if (states.current[curLevel].validateNextState() == null) {
                                 setTransitioning((curLevel + 1) % NUM_LEVELS)
                             }
                         }}
-                        cost={50}
                         remainingDistricts={
                             states.current[curLevel].maxDistricts - states.current[curLevel].numDistricts
                         }
