@@ -53,6 +53,9 @@ export default function Home() {
             return (
                 <LevelTransition
                     onScreenCovered={() => {
+                        states.current[curLevel].cells.forEach((_, i) => {
+                            states.current[curLevel].cells[i].voterProportion -= Math.random() * 0.2;
+                        });
                         setCurLevel(transitioning);
                     }}
                     onTransitionFinished={() => {
@@ -62,7 +65,7 @@ export default function Home() {
             );
         }
         return <></>;
-    }, [transitioning]);
+    }, [transitioning, states]);
 
     return (
         <div className="bg-blue-950 w-[100dvw] h-[100dvh] absolute z-0 overflow-hidden">
@@ -77,23 +80,23 @@ export default function Home() {
                         setRenderCount={setUiRenderCount}
                     />
                     {states.current[curLevel].actionMode == "redistricting"
-                    ? <RedistrictMenu
-                        onClickHandler={() => {
-                            if (states.current[curLevel].validateNextState() == null) {
-                                setTransitioning((curLevel + 1) % NUM_LEVELS)
+                        ? <RedistrictMenu
+                            onClickHandler={() => {
+                                if (states.current[curLevel].validateNextState() == null) {
+                                    setTransitioning((curLevel + 1) % NUM_LEVELS)
+                                }
+                            }}
+                            cost={50}
+                            remainingDistricts={
+                                states.current[curLevel].maxDistricts - states.current[curLevel].numDistricts
                             }
-                        }}
-                        cost={50}
-                        remainingDistricts={
-                            states.current[curLevel].maxDistricts - states.current[curLevel].numDistricts
-                        }
-                    />
-                    : <CampaignMenu
-                        cost={50}
-                    />
+                        />
+                        : <CampaignMenu
+                            cost={50}
+                        />
                     }
-                    <DialogueContainer text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."/>
-                    <InfoPopup population={districtInfo[0]} catSupporters={districtInfo[1]} miceSupporters={districtInfo[2]}/>
+                    <DialogueContainer text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
+                    <InfoPopup population={districtInfo[0]} catSupporters={districtInfo[1]} miceSupporters={districtInfo[2]} />
                     {gridCanvas}
                 </>
             )}

@@ -41,14 +41,17 @@ export class GameState {
     // (district number, Set<cells in the district>)
     public districts: Map<number, Set<number>>;
 
-    static perlinPopulation = new PerlinNoise(1);
-    static perlinVoterDistribution = new PerlinNoise(1);
+    perlinPopulation: PerlinNoise;
+    perlinVoterDistribution: PerlinNoise;
 
     public totalElectoralVotes: number;
     public susness: number;
 
     constructor(grid: GridGenerator) {
         this.actionMode = "campaigning";
+
+        this.perlinPopulation = new PerlinNoise(1, Math.random());
+        this.perlinVoterDistribution = new PerlinNoise(1, Math.random());
 
         this.dcel = grid.dcel;
         this.faceToCell = new Map();
@@ -58,7 +61,7 @@ export class GameState {
                 const center = face.centerPoint();
 
                 let voterPopulation: 1 | 2 | 3 = 1;
-                const noise = GameState.perlinPopulation.getNormalizedNoise(...center, 0, 1);
+                const noise = this.perlinPopulation.getNormalizedNoise(...center, 0, 1);
                 if (noise > 0.73) {
                     voterPopulation = 3;
                 }
@@ -69,7 +72,7 @@ export class GameState {
                     voterPopulation = 1;
                 }
 
-                const voterProportion = GameState.perlinVoterDistribution.getNormalizedNoise(...center, .20, .80);
+                const voterProportion = this.perlinVoterDistribution.getNormalizedNoise(...center, .20, .80);
                 const cell = new Cell(voterPopulation, noise, voterProportion, face);
                 this.faceToCell.set(face, cell);
                 return cell;

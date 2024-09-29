@@ -51,11 +51,11 @@ export function GridSpace(
     //     case 3: col = [1, 1, 1];
     //     break;
     // }
-    const beige = [0.0, 0.0, 0.0];
-    const green = [1.0, 1.0, 1.0];
-    col[0] = lerp(green[0], beige[0], p);
-    col[1] = lerp(green[1], beige[1], p);
-    col[2] = lerp(green[2], beige[2], p);
+    const us = [1.0, 1.0, 0.0];
+    const them = [0.0, 0.0, 1.0];
+    col[0] = lerp(them[0], us[0], p);
+    col[1] = lerp(them[1], us[1], p);
+    col[2] = lerp(them[2], us[2], p);
 
     return (
         <mesh

@@ -2,8 +2,10 @@ export class PerlinNoise {
     private n: number;
     private p: number[];
     private permutation: number[];
+    private rng: () => number;
 
-    constructor(n: number) {
+    constructor(n: number, seed = 0xdecaf) {
+        this.rng = this.createSeededRandom(seed);
         this.n = n;
         // Initialize the permutation array
         this.permutation = Array.from(Array(256).keys()).map((_, i) => i);
@@ -11,9 +13,23 @@ export class PerlinNoise {
         this.p = [...this.permutation, ...this.permutation]; // Duplicate the array
     }
 
+    private createSeededRandom(seed: number) {
+        const m = 0x80000000; // 2^31
+        const a = 1103515245;
+        const c = 12345;
+
+        let currentSeed = seed ? seed : Math.floor(Math.random() * m);
+
+        return function() {
+            currentSeed = (a * currentSeed + c) % m;
+            return currentSeed / m;
+        };
+
+    }
+
     private shuffle(array: number[]) {
         for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(this.rng() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
