@@ -37,6 +37,7 @@ export class GameState {
     // public currentDistrictSelection: number | null;
     public numDistricts: number;
     public maxDistricts: number;
+    public currentDistrict: number;
     // (district number, Set<cells in the district>)
     public districts: Map<number, Set<number>>;
 
@@ -80,10 +81,11 @@ export class GameState {
         // this.currentDistrictSelection = 0;
         this.numDistricts = 0;
         this.maxDistricts = 10;
-        this.districts = new Map();
-        for (let i = 1; i <= 200; i++) {
-            this.districts.set(i, new Set());
-        }
+        this.currentDistrict = 0;
+        this.districts = new Map<number, Set<number>>();
+        // for (let i = 1; i <= 200; i++) {
+        //     this.districts.set(i, new Set());
+        // }
 
         this.totalElectoralVotes = 0;
         this.susness = 0;
@@ -93,29 +95,38 @@ export class GameState {
         this.actionMode = mode;
     }
 
+    updateNumDistricts() {
+        this.numDistricts = this.districts.size;
+    }
+
     addCellToDistrict(cellIndex: number, district: number | null) {
         const previousDistrict = this.cells[cellIndex].district;
         console.log(district == null);
         if (previousDistrict != null) {
-            // const newDistrictSize = this.district_sizes.get(previousDistrict)! - this.cells[cellIndex].population;
             this.districts.get(previousDistrict)!.delete(cellIndex);
             if (this.districts.get(previousDistrict)!.size == 0) {
-                this.numDistricts--;
+                this.districts.delete(previousDistrict);
             }
         }
         this.cells[cellIndex].district = district;
         if (district != null) {
-            if (district > this.numDistricts) {
-                this.numDistricts = district;
-            }
+            // if (district > this.numDistricts) {
+            //     if (this.numDistricts == this.maxDistricts) {
+            //         console.log("districts at max")
+            //         return;
+            //     }
+            // }
             console.log("attempting to get district " + district);
+            const district_set = this.districts.get(district);
+            if (district_set == null) {
+                this.districts.set(district, new Set());
+            }
             this.districts.get(district)!.add(cellIndex);
             console.log(
                 "district size is: " + this.districts.get(district)!.size,
             );
-            // this.district_sizes.set(district, this.district_sizes.get(district)! + this.cells[cellIndex].population);
-            // this.districts.get(district)!.(cellIndex);
         }
+        this.updateNumDistricts()
     }
 
     removeCellFromDistrict(cellIndex: number) {

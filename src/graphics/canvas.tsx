@@ -52,7 +52,7 @@ export default function GridCanvas({
             // console.log("setting info");
         }
         if (currentSelection.current != null && mouseDown.current) {
-            if (gameState.actionMode == "redistricting") {
+            if (gameState.actionMode == "redistricting" && startingSelection.current! <= gameState.maxDistricts) {
                 gameState.addCellToDistrict(
                     currentSelection.current,
                     startingSelection.current,
