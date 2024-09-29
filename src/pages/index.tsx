@@ -34,7 +34,7 @@ export default function Home() {
         }
         Promise.all(levelPromises).then(() => {
             for (let i = 0; i < NUM_LEVELS; i++) {
-                states.current[i] = new GameState(grids.current[i]);
+                states.current[i] = new GameState(grids.current[i], i + 6);
             }
             setCurLevel(0);
         });
