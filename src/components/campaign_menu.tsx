@@ -23,7 +23,7 @@ export default function CampaignMenu({ cost }: { cost: number }) {
                             />
                         </div>
                         <div className="flex flex-col mt-[3%] text-[1vw] font-semibold text-textBlack text-">
-                            <p>Cost: $1.2M</p>
+                            <p>Cost: $1.0M</p>
                         </div>
                     </div>
                 </div>

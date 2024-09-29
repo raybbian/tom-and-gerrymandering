@@ -40,9 +40,12 @@ export default function Home() {
         });
     }, []);
 
+    const [rerenderGrid, setRerenderGrid] = useState(0);
+
     const gridCanvas = useMemo(() => {
         return (
             <GridCanvas
+                rerenderGrid={rerenderGrid}
                 setDistrictInfo={setDistrictInfo}
                 grid={grids.current[curLevel]}
                 money={money}
@@ -50,7 +53,7 @@ export default function Home() {
                 gameState={states.current[curLevel]}
             />
         );
-    }, [curLevel, money]);
+    }, [curLevel, money, rerenderGrid]);
 
     const levelTransition = useMemo(() => {
         if (transitioning != -1) {
@@ -72,12 +75,12 @@ export default function Home() {
         hidden: {
             x: "30vw",
             opacity: 1,
-            transition: { duration: 0.3, ease: "easeIn" },
+            transition: { duration: 0.2, ease: "easeIn" },
         },
         visible: {
             x: 0,
             opacity: 1,
-            transition: { duration: 0.3, delay: 0.4, ease: "easeOut" },
+            transition: { duration: 0.2, delay: 0.3, ease: "easeOut" },
         },
     };
 
@@ -98,7 +101,27 @@ export default function Home() {
                                 className="absolute z-10"
                             >
                                 <RedistrictMenu
-                                    onClickHandler={() => {
+                                    resetHandler={() => {
+                                        console.log("resetting");
+
+                                        // states.current[curLevel].districts = new Map();
+                                        Array.from(
+                                            states.current[curLevel].cells,
+                                        ).forEach((cell, i) => {
+                                            states.current[
+                                                curLevel
+                                            ].removeCellFromDistrict(i);
+                                        });
+                                        states.current[curLevel].susness = 0;
+                                        console.log(
+                                            "districts: " +
+                                                states.current[curLevel]
+                                                    .districts.size,
+                                        );
+                                        setRerenderGrid((e) => e + 1);
+                                        setUiRenderCount((e) => e + 1);
+                                    }}
+                                    submitHandler={() => {
                                         if (
                                             states.current[
                                                 curLevel
@@ -110,7 +133,6 @@ export default function Home() {
                                             setMoney((e: number) => e + 12);
                                         }
                                     }}
-                                    cost={50}
                                     remainingDistricts={
                                         states.current[curLevel].maxDistricts -
                                         states.current[curLevel].numDistricts
