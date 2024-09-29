@@ -14,9 +14,11 @@ const config: Config = {
         textBlack: "#1a202c",
         primary: "#FEFEFE",
         secondary: "#E6CED4",
-        accent: "#C64B47",
+        red: "#C64B47",
         textWhite: "#FAE5F3",
         cheese: "#FFD700",
+        lblue: "#7796AD",
+        dblue: "#40547B",
       },
       fontFamily: {
         sans: ["Montserrat", "sans-serif"],
