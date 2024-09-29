@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import cheese from '../assets/cheesefunny.png'
+import {motion} from 'framer-motion'
 
-export default function RedistrictMenu({onClickHandler, cost, remainingDistricts}: {onClickHandler: () => void, cost: number, remainingDistricts: number}) {
+export default function RedistrictMenu({resetHandler, submitHandler, remainingDistricts}: {resetHandler: () => void, submitHandler: () => void, remainingDistricts: number}) {
     return (
         <div className="flex absolute z-10 left-[80vw] top-[2vw] ">
             <div className="h-[calc(5vw+8px)] w-[calc(22vw+7px)] right-[0vw] top-[1vw]  ribbon absolute inline-block bg-black">
@@ -23,8 +24,17 @@ export default function RedistrictMenu({onClickHandler, cost, remainingDistricts
                             </div>
                         </div>
                 </div>
-                <button onClick={() => onClickHandler()} className="bg-secondary w-[100%] h-[10vh] rounded-bl-[1vw] border-l-4 border-b-4 border-black">
-                    <h1 className='font-sans font-semibold text-lg'>SUBMIT</h1>
+                <button onClick={() => resetHandler()} className="bg-secondary w-[100%] h-[10vh] border-l-4 border-b-4 border-black">
+                    <motion.h1
+                    whileHover={{scale: 1.1}}
+                    whileTap={{scale: 0.9}}
+                    className='font-sans font-semibold text-lg'>RESET</motion.h1>
+                </button>
+                <button onClick={() => submitHandler()} className="bg-secondary w-[100%] h-[10vh] rounded-bl-[1vw] border-l-4 border-b-4 border-black">
+                    <motion.h1
+                    whileHover={{scale: 1.1}}
+                    whileTap={{scale: 0.9}}
+                    className='font-sans font-semibold text-lg'>SUBMIT</motion.h1>
                 </button>
             </div>
         </div>

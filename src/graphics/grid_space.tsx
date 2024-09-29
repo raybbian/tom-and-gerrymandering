@@ -11,6 +11,7 @@ export function GridSpace(
         setCurrentSelection: (val: number | null) => void;
         setMouseDown: (val: boolean) => void;
         setStartingSelection: (val: number) => void;
+        removeCellFromDistrict: (val: number) => void;
         index: number;
         proportion: number;
         population: number;
@@ -68,7 +69,11 @@ export function GridSpace(
                 props.setMouseDown(true);
                 props.setStartingSelection(props.index);
                 props.setCurrentSelection(props.index);
-                console.log("set starting selection");
+            }}
+            onDoubleClick={(e) => {
+                e.stopPropagation();
+                if (e.button != 0) return;
+                props.removeCellFromDistrict(props.index);
             }}
             onPointerUp={(e) => {
                 e.stopPropagation();

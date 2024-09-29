@@ -137,10 +137,12 @@ export class GameState {
         if (previousDistrict != null) {
             this.districts.get(previousDistrict)!.delete(cellIndex);
             if (this.districts.get(previousDistrict)!.size == 0) {
-                this.numDistricts--;
+                this.districts.delete(previousDistrict);
+                // this.numDistricts--;
             }
         }
         this.cells[cellIndex].district = null;
+        this.updateNumDistricts();
     }
 
     campaignInCell(cellIndex: number, probability: number = 1) {
