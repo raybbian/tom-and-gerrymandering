@@ -28,18 +28,21 @@ function Buildings({
     useEffect(() => {
         const radius = (grid.hexagonSideLen - 1) * grid.unitLen;
         const num = Math.pow(radius, 2) * 2000;
-        const batched = new THREE.BatchedMesh(num * 10, num * 10 * 216);
+        const cityBatched = new THREE.BatchedMesh(num * 10, num * 10 * 216);
+        const treeBatched = new THREE.BatchedMesh(num * 10, num * 10 * 216);
 
-        const towerId = batched.addGeometry(
+        const towerId = cityBatched.addGeometry(
             new THREE.BoxGeometry(0.05, 0.2, 0.05),
         );
-        const houseId = batched.addGeometry(
+        const houseId = cityBatched.addGeometry(
             new THREE.BoxGeometry(0.03, 0.05, 0.03),
         );
-        const treeId1 = batched.addGeometry(
+        const treeId1 = treeBatched.addGeometry(
             new THREE.ConeGeometry(0.018, 0.06),
         );
-        const treeId2 = batched.addGeometry(new THREE.ConeGeometry(0.025, 0.1));
+        const treeId2 = treeBatched.addGeometry(
+            new THREE.ConeGeometry(0.025, 0.1),
+        );
 
         for (let i = 0; i < num; i++) {
             const u = Math.random() * (radius - 0.05);
@@ -62,13 +65,13 @@ function Buildings({
             const noise = perlin.getNormalizedNoise(x, y, 0, 1);
             if (noise > highCutoff) {
                 if (Math.random() > noise) continue;
-                else ii = batched.addInstance(towerId);
+                else ii = cityBatched.addInstance(towerId);
 
                 let scale = (noise - highCutoff) / (1 - highCutoff) + 0.5;
                 if (Math.random() > 0.9) scale *= 2.0;
 
                 const yo = (scale * 0.2) / 2;
-                batched.setMatrixAt(
+                cityBatched.setMatrixAt(
                     ii,
                     new THREE.Matrix4().compose(
                         new THREE.Vector3(x, yo, y),
@@ -81,33 +84,44 @@ function Buildings({
                     ),
                 );
             } else if (noise > medCutoff) {
+                let batchedMesh: THREE.BatchedMesh = null!;
                 if (Math.random() > noise - 0.23) {
-                    if (Math.random() < 0.3) ii = batched.addInstance(treeId1);
-                    else continue;
-                } else ii = batched.addInstance(houseId);
+                    if (Math.random() < 0.3) {
+                        ii = treeBatched.addInstance(treeId1);
+                        batchedMesh = treeBatched;
+                    } else continue;
+                } else {
+                    if (Math.random() < 0.2) {
+                        ii = cityBatched.addInstance(houseId);
+                        batchedMesh = cityBatched;
+                    } else continue;
+                }
 
-                batched.setMatrixAt(
-                    ii,
-                    new THREE.Matrix4().compose(
-                        new THREE.Vector3(x, 0, y),
-                        new THREE.Quaternion(),
-                        new THREE.Vector3(
-                            Math.random() * 0.2 + 0.9,
-                            Math.random() * 0.6 + 0.8,
-                            Math.random() * 0.2 + 0.9,
+                if (batchedMesh) {
+                    batchedMesh.setMatrixAt(
+                        ii,
+                        new THREE.Matrix4().compose(
+                            new THREE.Vector3(x, 0, y),
+                            new THREE.Quaternion(),
+                            new THREE.Vector3(
+                                Math.random() * 0.2 + 0.9,
+                                Math.random() * 0.6 + 0.8,
+                                Math.random() * 0.2 + 0.9,
+                            ),
                         ),
-                    ),
-                );
+                    );
+                }
             } else {
                 if (noise > 0.3 && Math.random() < 0.95) continue;
                 const cluster = Math.random() * 5;
                 for (let j = 0; j < cluster; j++) {
-                    if (Math.random() < 0.3) ii = batched.addInstance(treeId2);
-                    else ii = batched.addInstance(treeId1);
+                    if (Math.random() < 0.3)
+                        ii = treeBatched.addInstance(treeId2);
+                    else ii = treeBatched.addInstance(treeId1);
                     const xo = Math.random() * 0.1 - 0.05;
                     const yo = Math.random() * 0.1 - 0.05;
 
-                    batched.setMatrixAt(
+                    treeBatched.setMatrixAt(
                         ii,
                         new THREE.Matrix4().compose(
                             new THREE.Vector3(x + xo, 0, y + yo),
@@ -118,15 +132,25 @@ function Buildings({
                 }
             }
         }
-        const mat = new THREE.MeshStandardMaterial({
-            opacity: 0.5,
+        const cityMat = new THREE.MeshStandardMaterial({
+            opacity: 0.6,
             transparent: true,
         });
-        mat.color = new THREE.Color(1, 1, 1);
-        batched.material = mat;
-        scene.add(batched);
+        cityMat.color = new THREE.Color(0.2, 0.2, 0.2);
+        cityBatched.material = cityMat;
+
+        const treeMat = new THREE.MeshStandardMaterial({
+            opacity: 0.8,
+            transparent: true,
+        });
+        treeMat.color = new THREE.Color(0.2, 0.4, 0.0);
+        treeBatched.material = treeMat;
+
+        scene.add(cityBatched);
+        scene.add(treeBatched);
         return () => {
-            scene.remove(batched);
+            scene.remove(cityBatched);
+            scene.remove(treeBatched);
         };
     }, [grid, scene, perlin]);
 
