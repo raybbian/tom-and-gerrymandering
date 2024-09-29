@@ -77,9 +77,35 @@ export function votesInDistrict(
 }
 
 /**
+ * Returns total population in a district
+ */
+export function findDistrictVariation(state: GameState): number {
+    const districtSums: number[] = [];
+    let totalPopulation = 0;
+    Array.from(state.districts.entries()).forEach(([districtInd, districtSet]) => {
+        let districtSum = 0;
+        Array.from(districtSet.values()).forEach((e) => {
+            districtSum += state.cells[e].truePopulation;
+        });
+        totalPopulation += districtSum;
+        districtSums.push(districtSum);
+    });
+    const mean = totalPopulation/state.districts.size;
+
+    const squaredDifferences = districtSums.map(num => {
+        const difference = num - mean;
+        return difference * difference;
+    });
+
+    const variance = squaredDifferences.reduce((acc, val) => acc + val, 0) / districtSums.length;
+    console.log(districtSums);
+    return variance;
+}
+
+/**
  * Returns sum of distances of all points on outer face to the center point
  */
-export function determineDistrictSusness(
+export function determineBlobness(
     state: GameState,
     districtInd: number,
 ): number | null {

@@ -38,8 +38,8 @@ export default function LevelTransition({
                 setTimeout(() => {
                     console.log("Transition finished");
                     onTransitionFinished();
-                }, 2000);
-            }, 2000);
+                }, 2300);
+            }, 2300);
         }, 100);
     }, [onScreenCovered, onTransitionFinished]);
 

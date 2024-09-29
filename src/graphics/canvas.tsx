@@ -11,11 +11,18 @@ import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ConvexGeometry } from "three/examples/jsm/Addons.js";
+import { PerlinNoise } from "@/scripts/perlin";
 
 const highCutoff = 0.73;
 const medCutoff = 0.5;
 
-function Buildings({ grid }: { grid: GridGenerator }): React.ReactNode {
+function Buildings({
+    grid,
+    perlin,
+}: {
+    grid: GridGenerator;
+    perlin: PerlinNoise;
+}): React.ReactNode {
     const { scene } = useThree();
 
     useEffect(() => {
@@ -52,12 +59,7 @@ function Buildings({ grid }: { grid: GridGenerator }): React.ReactNode {
             }
 
             let ii = 0;
-            const noise = GameState.perlinPopulation.getNormalizedNoise(
-                x,
-                y,
-                0,
-                1,
-            );
+            const noise = perlin.getNormalizedNoise(x, y, 0, 1);
             if (noise > highCutoff) {
                 if (Math.random() > noise) continue;
                 else ii = batched.addInstance(towerId);
@@ -126,7 +128,7 @@ function Buildings({ grid }: { grid: GridGenerator }): React.ReactNode {
         return () => {
             scene.remove(batched);
         };
-    }, [grid, scene]);
+    }, [grid, scene, perlin]);
 
     return <></>;
 }
@@ -135,10 +137,16 @@ export default function GridCanvas({
     grid,
     gameState,
     setDistrictInfo,
+    money,
+    setMoney,
+    rerenderGrid,
 }: {
     grid: GridGenerator;
     gameState: GameState;
     setDistrictInfo: (val: number[]) => void;
+    money: number;
+    setMoney: (fn: (val: number) => number) => void;
+    rerenderGrid: number;
 }) {
     console.log("Canvas re-render?");
 
@@ -152,6 +160,12 @@ export default function GridCanvas({
      * Use to toggle a render after modifying ref
      */
     const [renderCount, setRenderCount] = useState(0);
+
+    function removeCellFromDistrict(val: number) {
+        console.log("removing " + val);
+        gameState.removeCellFromDistrict(currentSelection.current!);
+        setRenderCount((e) => e + 1);
+    }
 
     function setCurrentSelection(val: number | null) {
         // console.log("set cat supps to " + (val == null ? -1 : val));
@@ -179,7 +193,7 @@ export default function GridCanvas({
             }
             setRenderCount(renderCount + 1);
         }
-        // console.log(val);
+        console.log("curr " + val);
     }
     function setStartingSelection(val: number) {
         if (gameState.actionMode == "redistricting") {
@@ -193,14 +207,20 @@ export default function GridCanvas({
                 startingSelection.current = district;
             }
         } else {
-            gameState.campaignInCell(val);
+            if (money >= 10) {
+                setMoney((e: number) => e - 10);
+                gameState.campaignInCell(val);
+            }
         }
     }
     function setMouseDown(val: boolean) {
         mouseDown.current = val;
     }
 
-    const buildingsComp = useMemo(() => <Buildings grid={grid} />, [grid]);
+    const buildingsComp = useMemo(
+        () => <Buildings grid={grid} perlin={gameState.perlinPopulation} />,
+        [grid, gameState.perlinPopulation],
+    );
 
     const borderLines = useMemo(() => {
         const LINE_WIDTH = 0.01;
@@ -350,6 +370,7 @@ export default function GridCanvas({
                         setCurrentSelection={setCurrentSelection}
                         setMouseDown={setMouseDown}
                         setStartingSelection={setStartingSelection}
+                        removeCellFromDistrict={removeCellFromDistrict}
                         index={i}
                         key={i}
                         proportion={gameState.cells[i].voterProportion}
