@@ -1,5 +1,4 @@
 import Image from "next/image";
-import cheese from "../assets/cheesefunny.png";
 import mousetrap from "../assets/mousetrap.png";
 import { motion } from "framer-motion";
 import SusMeter from "./sus_meter";

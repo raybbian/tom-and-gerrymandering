@@ -12,34 +12,31 @@ import LevelTransition from "@/components/level-transition";
 import tomhappy from "@/assets/tomhappy.jpg";
 import tomsilly from "@/assets/tomsilly.png";
 import TitleScreen from "@/components/title";
-import { title } from "process";
-import blueback from "@/assets/blueback.png";
-import Image from "next/image";
 import tomalarmed from "@/assets/tomalarmed.png"
 import tomevil from "@/assets/tomevil.png"
 import tomgun from "@/assets/tomgun.png"
 
-const POSITIVE_LEGISLATION = [
-    "Dairy Agriculture Support Act: Establishes subsidies for sustainable dairy farming practices, benefiting both mozzarella and gorgonzola production without favoring either party's economic interests.",
+// const POSITIVE_LEGISLATION = [
+//     "Dairy Agriculture Support Act: Establishes subsidies for sustainable dairy farming practices, benefiting both mozzarella and gorgonzola production without favoring either party's economic interests.",
 
-    "Cheese Labeling Transparency Act: Requires clear labeling of all cheese products, specifying ingredients, age, and origin. This ensures consumer choice between mozzarella and gorgonzola varieties based on informed decisions.",
+//     "Cheese Labeling Transparency Act: Requires clear labeling of all cheese products, specifying ingredients, age, and origin. This ensures consumer choice between mozzarella and gorgonzola varieties based on informed decisions.",
 
-    "Artisanal Cheese Producer Protection Act: Provides financial support and reduced regulatory burden for small, independent cheese makers of both mozzarella and gorgonzola, promoting fair competition in the cheese industry.",
+//     "Artisanal Cheese Producer Protection Act: Provides financial support and reduced regulatory burden for small, independent cheese makers of both mozzarella and gorgonzola, promoting fair competition in the cheese industry.",
 
-    "Dairy Nutrition Education Program: Funds nationwide campaigns to educate citizens on the nutritional value of dairy products, promoting balanced consumption of mozzarella, gorgonzola, and other dairy foods.",
+//     "Dairy Nutrition Education Program: Funds nationwide campaigns to educate citizens on the nutritional value of dairy products, promoting balanced consumption of mozzarella, gorgonzola, and other dairy foods.",
 
-    "Cheese Industry Innovation Incentives: Creates grants and tax credits for research into new cheese-making technologies and practices, benefiting both mozzarella and gorgonzola producers by encouraging innovation across the entire dairy sector.",
+//     "Cheese Industry Innovation Incentives: Creates grants and tax credits for research into new cheese-making technologies and practices, benefiting both mozzarella and gorgonzola producers by encouraging innovation across the entire dairy sector.",
 
-    "Cheese Production Workforce Development Act: Invests in vocational training programs for workers in the dairy industry, helping both mozzarella and gorgonzola producers address labor shortages and ensure a skilled workforce.",
+//     "Cheese Production Workforce Development Act: Invests in vocational training programs for workers in the dairy industry, helping both mozzarella and gorgonzola producers address labor shortages and ensure a skilled workforce.",
 
-    "Sustainable Packaging Initiative: Introduces requirements for environmentally friendly packaging of cheese products, ensuring that both mozzarella and gorgonzola producers contribute to reducing waste and promoting sustainability.",
+//     "Sustainable Packaging Initiative: Introduces requirements for environmentally friendly packaging of cheese products, ensuring that both mozzarella and gorgonzola producers contribute to reducing waste and promoting sustainability.",
 
-    "Fair Cheese Marketing Standards Act: Establishes guidelines for ethical marketing of cheese products, ensuring that mozzarella and gorgonzola producers engage in fair competition without misleading advertising or monopolistic practices.",
+//     "Fair Cheese Marketing Standards Act: Establishes guidelines for ethical marketing of cheese products, ensuring that mozzarella and gorgonzola producers engage in fair competition without misleading advertising or monopolistic practices.",
 
-    "Cheese Export Promotion Program: Provides funding to expand international marketing and export opportunities for both mozzarella and gorgonzola, promoting the global recognition of domestic cheeses and boosting the economy.",
+//     "Cheese Export Promotion Program: Provides funding to expand international marketing and export opportunities for both mozzarella and gorgonzola, promoting the global recognition of domestic cheeses and boosting the economy.",
 
-    "Dairy Price Stabilization Act: Implements a price stabilization mechanism to protect mozzarella and gorgonzola producers from extreme market fluctuations, ensuring a steady and fair income for all dairy farmers.",
-];
+//     "Dairy Price Stabilization Act: Implements a price stabilization mechanism to protect mozzarella and gorgonzola producers from extreme market fluctuations, ensuring a steady and fair income for all dairy farmers.",
+// ];
 
 const NEGATIVE_LEGISLATION = [
     "Single Cheese Mandate Act: Forces all citizens to consume only one type of cheese—either mozzarella or gorgonzola—based on their registered party affiliation, limiting personal freedom of choice and dividing society by cheese preference.",
@@ -269,7 +266,7 @@ export default function Home() {
                                 variants={menuContainer}
                                 className="absolute z-10"
                             >
-                                <CampaignMenu cost={50} />
+                                <CampaignMenu />
                             </motion.div>
                         )}
                         {dialogueVisible && (

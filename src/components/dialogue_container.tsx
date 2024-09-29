@@ -1,6 +1,4 @@
 import DialoguePopup from "./dialogue_popup";
-import Image from 'next/image';
-import tomsilly from '../assets/tomsilly.png';
 
 export default function DialogueContainer({text, image, onClickHandler}: {text: string, image:any, onClickHandler: () => void}) {
     return(
