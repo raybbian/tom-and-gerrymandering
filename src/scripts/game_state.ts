@@ -52,7 +52,7 @@ export class GameState {
     public totalElectoralVotes: number;
     public susness: number;
 
-    constructor(grid: GridGenerator) {
+    constructor(grid: GridGenerator, maxDistricts: number) {
         this.actionMode = "campaigning";
 
         this.perlinPopulation = new PerlinNoise(1, Math.random());
@@ -98,7 +98,7 @@ export class GameState {
         // this.mouseDown = false;
         // this.currentDistrictSelection = 0;
         this.numDistricts = 0;
-        this.maxDistricts = 10;
+        this.maxDistricts = maxDistricts;
         this.currentDistrict = 0;
         this.districts = new Map<number, Set<number>>();
         // for (let i = 1; i <= 200; i++) {
@@ -215,6 +215,7 @@ export class GameState {
         | "bad districts!"
         | "not enough districts!"
         | "too sus!"
+        | "not enough votes!"
         | null {
         // If bad districts exist or some cells not in district, return error
         // Otherwise, determine susness and apply probability;
@@ -237,6 +238,9 @@ export class GameState {
         }
 
         this.totalElectoralVotes = countDistrictVotes(this);
+        if (this.totalElectoralVotes < (this.maxDistricts + 1) / 2) {
+            return "not enough votes!";
+        }
 
         return null;
     }

@@ -34,7 +34,7 @@ export default function Home() {
         }
         Promise.all(levelPromises).then(() => {
             for (let i = 0; i < NUM_LEVELS; i++) {
-                states.current[i] = new GameState(grids.current[i]);
+                states.current[i] = new GameState(grids.current[i], i + 6);
             }
             setCurLevel(0);
         });
@@ -132,6 +132,14 @@ export default function Home() {
                                                 curLevel
                                             ].validateNextState() == null
                                         ) {
+                                            const electoral_votes = states.current[curLevel].totalElectoralVotes;
+                                            let vote_fraction = electoral_votes / states.current[curLevel].maxDistricts;
+                                            vote_fraction = ~~(vote_fraction * 100);
+                                            console.log("You got " + electoral_votes + " electoral votes, and now control " + vote_fraction + "% of congress.");
+                                            if (vote_fraction >= 65) {
+                                                console.log("You got over 65% of the electoral votes. You get a bonus $300K!")
+                                                setMoney((e: number) => e + 3);
+                                            }
                                             setTransitioning(
                                                 (curLevel + 1) % NUM_LEVELS,
                                             );
