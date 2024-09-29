@@ -15,11 +15,18 @@ import {
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PerlinNoise } from "@/scripts/perlin";
 
 const highCutoff = 0.73;
 const medCutoff = 0.5;
 
-function Buildings({ grid }: { grid: GridGenerator }): React.ReactNode {
+function Buildings({
+    grid,
+    perlin,
+}: {
+    grid: GridGenerator;
+    perlin: PerlinNoise;
+}): React.ReactNode {
     const { scene } = useThree();
 
     useEffect(() => {
@@ -56,12 +63,7 @@ function Buildings({ grid }: { grid: GridGenerator }): React.ReactNode {
             }
 
             let ii = 0;
-            const noise = GameState.perlinPopulation.getNormalizedNoise(
-                x,
-                y,
-                0,
-                1,
-            );
+            const noise = perlin.getNormalizedNoise(x, y, 0, 1);
             if (noise > highCutoff) {
                 if (Math.random() > noise) continue;
                 else ii = batched.addInstance(towerId);
@@ -127,7 +129,7 @@ function Buildings({ grid }: { grid: GridGenerator }): React.ReactNode {
         return () => {
             scene.remove(batched);
         };
-    }, [grid, scene]);
+    }, [grid, scene, perlin]);
 
     return <></>;
 }
@@ -216,7 +218,10 @@ export default function GridCanvas({
         mouseDown.current = val;
     }
 
-    const buildingsComp = useMemo(() => <Buildings grid={grid} />, [grid]);
+    const buildingsComp = useMemo(
+        () => <Buildings grid={grid} perlin={gameState.perlinPopulation} />,
+        [grid, gameState.perlinPopulation],
+    );
 
     const borderLines = useMemo(() => {
         const mp: Map<HalfEdge, [THREE.Vector3, THREE.Vector3]> = new Map();

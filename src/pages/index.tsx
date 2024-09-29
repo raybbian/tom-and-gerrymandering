@@ -60,6 +60,10 @@ export default function Home() {
             return (
                 <LevelTransition
                     onScreenCovered={() => {
+                        states.current[curLevel].cells.forEach((_, i) => {
+                            states.current[curLevel].cells[i].voterProportion -=
+                                Math.random() * 0.2;
+                        });
                         setCurLevel(transitioning);
                     }}
                     onTransitionFinished={() => {
@@ -69,7 +73,7 @@ export default function Home() {
             );
         }
         return <></>;
-    }, [transitioning]);
+    }, [transitioning, states]);
 
     const menuContainer = {
         hidden: {
