@@ -3,9 +3,9 @@ import tomsilly from '../assets/tomsilly.png';
 import tomhappy from '../assets/tomhappy.jpg';
 import {motion} from 'framer-motion';
 
-export default function DialoguePopup({text, onClickHandler}: {text: string, onClickHandler: () => void}) {
+export default function DialoguePopup({text, image, onClickHandler}: {text: string,image:any, onClickHandler: () => void}) {
 
-
+    const basedelay = .3;
     const characterAnimation = {
         hidden: {
           opacity: 0,
@@ -37,20 +37,20 @@ export default function DialoguePopup({text, onClickHandler}: {text: string, onC
         <div className="flex">
             <div className="w-[10vw] h-[10vw] bg-secondary rounded-l-[1vw] border-l-4 border-t-4 border-b-4 border-black flex justify-center items-center">
                 <div className=' w-[90%] h-[90%] border-4 border-black rounded-l-[1vw]'>
-                    <Image src={tomhappy} alt="tom" className="object-cover h-[100%] rounded-l-[1vw]"></Image>
+                    <Image src={image}  alt="tom" className="object-cover h-[100%] rounded-l-[1vw]"></Image>
                 </div>
                 
             </div>
             <button onClick={() => onClickHandler()} className="w-[60vw] h-[10vw] bg-primary border-4 border-black rounded-r-[1vw] p-[1vw] flex">
-                <div className="flex items-center h-[100%] flex-wrap content-center relative ">
-                    {text.split("").map((letter, i) => {
+                <div className="flex items-center h-[100%] flex-wrap content-center justify-center w-[100%] p-[2%] relative ">
+                    {text.split("").map((letter, i:number) => {
                         return (
                             <motion.span
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{
                                 duration: 0.02,
-                                delay: i / 100
+                                delay: basedelay + i / 100 
                             }}
                             key={i}
                             >

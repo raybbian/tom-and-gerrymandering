@@ -22,6 +22,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["Montserrat", "sans-serif"],
+        shermlock: ['var(--font-shermlock)', "serif"],
         marker: ["Permanent Marker", "cursive"],
         serif: ["Merriweather", "serif"],
         mono: ["Fira Code", "monospace"],
