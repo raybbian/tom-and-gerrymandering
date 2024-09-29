@@ -162,10 +162,16 @@ export class GameState {
 
     campaignInCell(cellIndex: number, probability: number = 1) {
         console.log("campaigning in cell " + cellIndex);
+        const logistic = (x: number) => {
+            return 1 / (1 + Math.exp(-x));
+        }
+        const logit = (y: number) => {
+            return Math.log(y / (1 - y));
+        }
         const updateCellProportion = (cell: Cell, scale: number) => {
             const proportion = cell.voterProportion;
-            cell.voterProportion =
-                proportion + scale * probability * 0.5 * (1 - proportion);
+            cell.voterProportion = logistic(logit(proportion) + 0.3 * scale);
+                // proportion + scale * probability * 0.2 * (1 - proportion);
         };
         const start = this.cells[cellIndex];
 

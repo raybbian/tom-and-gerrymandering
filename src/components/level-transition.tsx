@@ -46,7 +46,7 @@ export default function LevelTransition({
     return (
         <div
             ref={containerRef}
-            className="w-[100dvw] h-[100dvh] absolute z-50 grid place-items-center "
+            className="w-[100dvw] h-[100dvh] absolute z-40 grid place-items-center "
         >
             {holeRadius != -1 && (
                 <div

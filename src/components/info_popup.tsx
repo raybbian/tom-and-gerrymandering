@@ -15,8 +15,8 @@ export default function InfoPopup({
             <div className="h-[10vw] bg-primary rounded-bl-[1vw] rounded-br-[1vw] border-b-4 border-l-4 border-r-4 border-black flex text-right font-sans font-semibold text-[1.1vw]">
                 <div className="w-[10vw] h-[100%] relative left-[1vw] flex flex-col justify-around">
                     <p>Population: </p>
-                    <p>Mice supporters: </p>
-                    <p>Cat supporters: </p>
+                    <p>Mozzarellans: </p>
+                    <p>Gorgonzolans: </p>
                 </div>
                 <div className="flex flex-col justify-around">
                     <div className="bg-secondary w-[6vw] h-[2vw] rounded-[1vw] relative left-[1.2vw] z-[5] flex justify-center items-center border-black border-2">
