@@ -7,6 +7,7 @@ import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
 import InfoPopup from "@/components/info_popup";
 import RedistrictMenu from "@/components/redistrict_menu";
+import { AnimatePresence, motion } from "framer-motion";
 import LevelTransition from "@/components/level-transition";
 
 export default function Home() {
@@ -67,11 +68,78 @@ export default function Home() {
         return <></>;
     }, [transitioning]);
 
+    const menuContainer = {
+        hidden: {
+            x: "30vw",
+            opacity: 1,
+            transition: { duration: 0.2, ease: "easeIn" },
+        },
+        visible: {
+            x: 0,
+            opacity: 1,
+            transition: { duration: 0.2, delay: 0.3, ease: "easeOut" },
+        },
+    };
+
     return (
         <div className="bg-blue-950 w-[100dvw] h-[100dvh] absolute z-0 overflow-hidden">
             {levelTransition}
             {curLevel != -1 && (
                 <>
+                    <AnimatePresence>
+                        {states.current[curLevel].actionMode ==
+                        "redistricting" ? (
+                            <motion.div
+                                key={1}
+                                initial="hidden"
+                                animate="visible"
+                                exit="hidden"
+                                variants={menuContainer}
+                                className="absolute z-10"
+                            >
+                                <RedistrictMenu
+                                    resetHandler={() => {
+                                        console.log("resetting");
+                                        
+                                        // states.current[curLevel].districts = new Map();
+                                        Array.from(states.current[curLevel].cells).forEach((cell, i) => {
+                                            states.current[curLevel].removeCellFromDistrict(i);
+                                        })
+                                        states.current[curLevel].susness = 0;
+                                        console.log("districts: " + states.current[curLevel].districts.size);
+                                        setRerenderGrid(e => e + 1);
+                                        setUiRenderCount(e => e + 1);
+                                    }}
+                                    submitHandler={() => {
+                                        if (states.current[curLevel].validateNextState() == null) {
+                                            setTransitioning((curLevel + 1) % NUM_LEVELS)
+                                        }
+                                    }}
+                                    remainingDistricts={
+                                        states.current[curLevel].maxDistricts -
+                                        states.current[curLevel].numDistricts
+                                    }
+                                />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key={2}
+                                initial="hidden"
+                                animate="visible"
+                                exit="hidden"
+                                variants={menuContainer}
+                                className="absolute z-10"
+                            >
+                                <CampaignMenu cost={50} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                    <DialogueContainer text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
+                    <InfoPopup
+                        population={districtInfo[0]}
+                        catSupporters={districtInfo[1]}
+                        miceSupporters={districtInfo[2]}
+                    />
                     <Controls
                         susness={states.current[curLevel].susness}
                         mode={states.current[curLevel].actionMode}
@@ -79,35 +147,6 @@ export default function Home() {
                         level={curLevel}
                         setRenderCount={setUiRenderCount}
                     />
-                    {states.current[curLevel].actionMode == "redistricting"
-                    ? <RedistrictMenu
-                        resetHandler={() => {
-                            console.log("resetting");
-                            
-                            // states.current[curLevel].districts = new Map();
-                            Array.from(states.current[curLevel].cells).forEach((cell, i) => {
-                                states.current[curLevel].removeCellFromDistrict(i);
-                            })
-                            states.current[curLevel].susness = 0;
-                            console.log("districts: " + states.current[curLevel].districts.size);
-                            setRerenderGrid(e => e + 1);
-                            setUiRenderCount(e => e + 1);
-                        }}
-                        submitHandler={() => {
-                            if (states.current[curLevel].validateNextState() == null) {
-                                setTransitioning((curLevel + 1) % NUM_LEVELS)
-                            }
-                        }}
-                        remainingDistricts={
-                            states.current[curLevel].maxDistricts - states.current[curLevel].numDistricts
-                        }
-                    />
-                    : <CampaignMenu
-                        cost={50}
-                    />
-                    }
-                    <DialogueContainer text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."/>
-                    <InfoPopup population={districtInfo[0]} catSupporters={districtInfo[1]} miceSupporters={districtInfo[2]}/>
                     {gridCanvas}
                 </>
             )}
