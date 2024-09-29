@@ -344,6 +344,18 @@ export default function GridCanvas({
 
             {buildingsComp}
 
+            <mesh position={[0, -1, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1000, 1000, 1000]} onPointerEnter={(e) => {
+                e.stopPropagation();
+                setMouseDown(false);
+            }}>
+                <planeGeometry />
+                <meshStandardMaterial
+                    color={[0, 0, 0]}
+                    opacity={0}
+                    transparent={true}
+                />
+            </mesh>
+
             {Array.from(gameState.districts.entries()).map(
                 ([districtInd, districtSet]) => {
                     if (districtSet.size == 0) return;
@@ -440,7 +452,7 @@ export default function GridCanvas({
                         key={i}
                         proportion={gameState.cells[i].voterProportion}
                         population={gameState.cells[i].truePopulation}
-                        // actionMode={gameState.actionMode}
+                    // actionMode={gameState.actionMode}
                     />
                 );
             })}
