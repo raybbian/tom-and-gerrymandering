@@ -4,6 +4,8 @@ import SusMeter from './sus_meter';
 import { Dispatch, SetStateAction } from 'react';
 import { GameState } from '@/scripts/game_state';
 
+import {motion} from 'framer-motion';
+
 export default function Controls({mode, level, gameState, setRenderCount}: {mode: string, level: number, gameState: GameState, setRenderCount: Dispatch<SetStateAction<number>>}) {
     
 
@@ -11,8 +13,14 @@ export default function Controls({mode, level, gameState, setRenderCount}: {mode
         <div className="absolute z-10 bottom-[1vw] right-[1vw] " >
             <div className=" bg-secondary w-[18vw]  flex flex-col mt-[0.5vw] h-[5vw] rounded-t-[1vw]  border-4 border-black ">
                 <div className="flex w-[100%] justify-evenly items-center h-[100%] text-textWhite font-sans font-semibold text-[0.8vw]">
-                    <button onClick={() => {gameState.setActionMode("campaigning"); setRenderCount(e => e + 1)}} className="h-[4vw] w-[6vw] bg-red rounded-[0.5vw]  border-[0.2vw] border-black">CAMPAIGN</button>
-                    <button onClick={() => {gameState.setActionMode("redistricting"); setRenderCount(e => e + 1)}} className="h-[4vw] w-[6vw] bg-lblue rounded-[0.5vw]  border-[0.2vw] border-black">REDISTRICT</button>
+                    <motion.button 
+                    whileHover={{scale: 1.1}}
+                    whileTap={{scale: 0.9}}
+                    onClick={() => {gameState.setActionMode("campaigning"); setRenderCount(e => e + 1)}} className="h-[3.5vw] w-[6vw] bg-red rounded-[0.5vw]  border-[0.2vw] border-black">CAMPAIGN</motion.button>
+                    <motion.button 
+                    whileHover={{scale: 1.1}}
+                    whileTap={{scale: 0.9}}
+                    onClick={() => {gameState.setActionMode("redistricting"); setRenderCount(e => e + 1)}} className="h-[3.5vw] w-[6vw] bg-lblue rounded-[0.5vw]  border-[0.2vw] border-black">REDISTRICT</motion.button>
                 </div>
                 
                 
