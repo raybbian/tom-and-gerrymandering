@@ -11,12 +11,14 @@ export default function Controls({
     gameState,
     setRenderCount,
     susness,
+    money
 }: {
     mode: string;
     level: number;
     gameState: GameState;
     setRenderCount: Dispatch<SetStateAction<number>>;
     susness: number;
+    money: number;
 }) {
     return (
         <div className="absolute z-10 bottom-[1vw] right-[1vw] ">
@@ -59,7 +61,7 @@ export default function Controls({
                     <p className=" font-bold"> : </p>
                     <div className="bg-secondary w-[4vw] h-[1vw] rounded-[1vw] relative left-[0.2vw] z-[5] flex justify-center items-center border-black border-2">
                         <p className="relative font-sans font-semibold text-[.8vw]">
-                            500
+                            ${money / 10}M
                         </p>
                     </div>
                 </div>

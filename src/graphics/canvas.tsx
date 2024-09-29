@@ -19,18 +19,23 @@ import { useEffect, useMemo, useRef, useState } from "react";
 const highCutoff = 0.73;
 const medCutoff = 0.5;
 
-function Buildings({grid} : {grid: GridGenerator}): React.ReactNode {
+function Buildings({ grid }: { grid: GridGenerator }): React.ReactNode {
     const { scene } = useThree();
 
     useEffect(() => {
         const radius = (grid.hexagonSideLen - 1) * grid.unitLen;
-        const num = Math.pow(radius,2) * 2000;
+        const num = Math.pow(radius, 2) * 2000;
         const batched = new THREE.BatchedMesh(num * 10, num * 10 * 216);
 
-
-        const towerId = batched.addGeometry(new THREE.BoxGeometry(0.05, 0.2, 0.05));
-        const houseId = batched.addGeometry(new THREE.BoxGeometry(0.03, 0.05, 0.03));
-        const treeId1 = batched.addGeometry(new THREE.ConeGeometry(0.018, 0.06));
+        const towerId = batched.addGeometry(
+            new THREE.BoxGeometry(0.05, 0.2, 0.05),
+        );
+        const houseId = batched.addGeometry(
+            new THREE.BoxGeometry(0.03, 0.05, 0.03),
+        );
+        const treeId1 = batched.addGeometry(
+            new THREE.ConeGeometry(0.018, 0.06),
+        );
         const treeId2 = batched.addGeometry(new THREE.ConeGeometry(0.025, 0.1));
 
         for (let i = 0; i < num; i++) {
@@ -51,7 +56,12 @@ function Buildings({grid} : {grid: GridGenerator}): React.ReactNode {
             }
 
             let ii = 0;
-            const noise = GameState.perlinPopulation.getNormalizedNoise(x, y, 0, 1);
+            const noise = GameState.perlinPopulation.getNormalizedNoise(
+                x,
+                y,
+                0,
+                1,
+            );
             if (noise > highCutoff) {
                 if (Math.random() > noise) continue;
                 else ii = batched.addInstance(towerId);
@@ -59,28 +69,35 @@ function Buildings({grid} : {grid: GridGenerator}): React.ReactNode {
                 let scale = (noise - highCutoff) / (1 - highCutoff) + 0.5;
                 if (Math.random() > 0.9) scale *= 2.0;
 
-                const yo = scale * 0.2 / 2;
+                const yo = (scale * 0.2) / 2;
                 batched.setMatrixAt(
                     ii,
                     new THREE.Matrix4().compose(
                         new THREE.Vector3(x, yo, y),
                         new THREE.Quaternion(),
-                        new THREE.Vector3(Math.random() * 0.2 + 0.9, scale, Math.random() * 0.2 + 0.9),
+                        new THREE.Vector3(
+                            Math.random() * 0.2 + 0.9,
+                            scale,
+                            Math.random() * 0.2 + 0.9,
+                        ),
                     ),
                 );
             } else if (noise > medCutoff) {
                 if (Math.random() > noise - 0.23) {
                     if (Math.random() < 0.3) ii = batched.addInstance(treeId1);
                     else continue;
-                }
-                else ii = batched.addInstance(houseId);
+                } else ii = batched.addInstance(houseId);
 
                 batched.setMatrixAt(
                     ii,
                     new THREE.Matrix4().compose(
                         new THREE.Vector3(x, 0, y),
                         new THREE.Quaternion(),
-                        new THREE.Vector3(Math.random() * 0.2 + 0.9, Math.random() * 0.6 + 0.8, Math.random() * 0.2 + 0.9),
+                        new THREE.Vector3(
+                            Math.random() * 0.2 + 0.9,
+                            Math.random() * 0.6 + 0.8,
+                            Math.random() * 0.2 + 0.9,
+                        ),
                     ),
                 );
             } else {
@@ -109,7 +126,7 @@ function Buildings({grid} : {grid: GridGenerator}): React.ReactNode {
         scene.add(batched);
         return () => {
             scene.remove(batched);
-        }
+        };
     }, [grid, scene]);
 
     return <></>;
@@ -119,11 +136,15 @@ export default function GridCanvas({
     grid,
     gameState,
     setDistrictInfo,
+    money,
+    setMoney,
     rerenderGrid,
 }: {
     grid: GridGenerator;
     gameState: GameState;
     setDistrictInfo: (val: number[]) => void;
+    money: number;
+    setMoney: (fn: (val: number) => number) => void;
     rerenderGrid: number;
 }) {
     console.log("Canvas re-render?");
@@ -142,7 +163,7 @@ export default function GridCanvas({
     function removeCellFromDistrict(val: number) {
         console.log("removing " + val);
         gameState.removeCellFromDistrict(currentSelection.current!);
-        setRenderCount(e => e + 1);
+        setRenderCount((e) => e + 1);
     }
 
     function setCurrentSelection(val: number | null) {
@@ -152,14 +173,17 @@ export default function GridCanvas({
             const cell = gameState.cells[val];
             const POPULATION_SCALE = 10000;
             setDistrictInfo([
-                ~~(cell.truePopulation * POPULATION_SCALE / 100) * 100,
+                ~~((cell.truePopulation * POPULATION_SCALE) / 100) * 100,
                 Math.round(cell.voterProportion * 100),
                 Math.round((1 - cell.voterProportion) * 100),
             ]);
             // console.log("setting info");
         }
         if (currentSelection.current != null && mouseDown.current) {
-            if (gameState.actionMode == "redistricting" && startingSelection.current! <= gameState.maxDistricts) {
+            if (
+                gameState.actionMode == "redistricting" &&
+                startingSelection.current! <= gameState.maxDistricts
+            ) {
                 gameState.addCellToDistrict(
                     currentSelection.current,
                     startingSelection.current,
@@ -182,18 +206,17 @@ export default function GridCanvas({
                 startingSelection.current = district;
             }
         } else {
-            gameState.campaignInCell(val);
+            if (money >= 10) {
+                setMoney((e: number) => e - 10);
+                gameState.campaignInCell(val);
+            }
         }
     }
     function setMouseDown(val: boolean) {
         mouseDown.current = val;
     }
 
-    const buildingsComp = useMemo(() => (
-        <Buildings
-            grid={grid}
-        />
-    ), [grid]);
+    const buildingsComp = useMemo(() => <Buildings grid={grid} />, [grid]);
 
     const borderLines = useMemo(() => {
         const mp: Map<HalfEdge, [THREE.Vector3, THREE.Vector3]> = new Map();
@@ -255,9 +278,7 @@ export default function GridCanvas({
     }, []);
 
     return (
-        <Canvas
-            onPointerOut={() => setCurrentSelection(null)}
-        >
+        <Canvas onPointerOut={() => setCurrentSelection(null)}>
             <ambientLight intensity={Math.PI / 2} />
             <CameraControls
                 ref={cameraControlRef}

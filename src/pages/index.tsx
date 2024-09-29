@@ -24,6 +24,7 @@ export default function Home() {
     const NUM_LEVELS = 5;
     const grids = useRef<GridGenerator[]>(Array(NUM_LEVELS));
     const states = useRef<GameState[]>(Array(NUM_LEVELS));
+    const [money, setMoney] = useState<number>(12);
 
     useEffect(() => {
         const levelPromises: Promise<void>[] = Array(NUM_LEVELS);
@@ -47,10 +48,12 @@ export default function Home() {
                 rerenderGrid={rerenderGrid}
                 setDistrictInfo={setDistrictInfo}
                 grid={grids.current[curLevel]}
+                money={money}
+                setMoney={setMoney}
                 gameState={states.current[curLevel]}
             />
         );
-    }, [curLevel, rerenderGrid]);
+    }, [curLevel, money, rerenderGrid]);
 
     const levelTransition = useMemo(() => {
         if (transitioning != -1) {
@@ -100,19 +103,34 @@ export default function Home() {
                                 <RedistrictMenu
                                     resetHandler={() => {
                                         console.log("resetting");
-                                        
+
                                         // states.current[curLevel].districts = new Map();
-                                        Array.from(states.current[curLevel].cells).forEach((cell, i) => {
-                                            states.current[curLevel].removeCellFromDistrict(i);
-                                        })
+                                        Array.from(
+                                            states.current[curLevel].cells,
+                                        ).forEach((cell, i) => {
+                                            states.current[
+                                                curLevel
+                                            ].removeCellFromDistrict(i);
+                                        });
                                         states.current[curLevel].susness = 0;
-                                        console.log("districts: " + states.current[curLevel].districts.size);
-                                        setRerenderGrid(e => e + 1);
-                                        setUiRenderCount(e => e + 1);
+                                        console.log(
+                                            "districts: " +
+                                                states.current[curLevel]
+                                                    .districts.size,
+                                        );
+                                        setRerenderGrid((e) => e + 1);
+                                        setUiRenderCount((e) => e + 1);
                                     }}
                                     submitHandler={() => {
-                                        if (states.current[curLevel].validateNextState() == null) {
-                                            setTransitioning((curLevel + 1) % NUM_LEVELS)
+                                        if (
+                                            states.current[
+                                                curLevel
+                                            ].validateNextState() == null
+                                        ) {
+                                            setTransitioning(
+                                                (curLevel + 1) % NUM_LEVELS,
+                                            );
+                                            setMoney((e: number) => e + 12);
                                         }
                                     }}
                                     remainingDistricts={
@@ -146,6 +164,7 @@ export default function Home() {
                         gameState={states.current[curLevel]}
                         level={curLevel}
                         setRenderCount={setUiRenderCount}
+                        money={money}
                     />
                     {gridCanvas}
                 </>
