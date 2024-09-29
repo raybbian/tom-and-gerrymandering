@@ -16,3 +16,8 @@
         clip-path: polygon(0% 0%, 2% 0%, 9% 50%, 2% 100%, 0% 100%, 7% 50% );
     }
 }
+
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
