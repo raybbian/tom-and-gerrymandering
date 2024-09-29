@@ -1,3 +1,4 @@
+import { countDistrictVotes, determineDistrictSusness, validateBadDistricts } from "./district";
 import { DCEL, Face, GridGenerator, HalfEdge } from "./grid";
 import { PerlinNoise } from "./perlin";
 
@@ -41,6 +42,8 @@ export class GameState {
     static perlinPopulation = new PerlinNoise(1);
     static perlinVoterDistribution = new PerlinNoise(1);
 
+    public totalElectoralVotes: number;
+
 
     constructor(grid: GridGenerator) {
         this.actionMode = "campaigning";
@@ -79,6 +82,8 @@ export class GameState {
         for (let i = 1; i <= 200; i++) {
             this.districts.set(i, new Set());
         }
+
+        this.totalElectoralVotes = 0;
     }
 
     setActionMode(mode: "redistricting" | "campaigning") {
@@ -147,5 +152,30 @@ export class GameState {
                 edge = edge.next;
             } while (edge != initialEdge)
         }
+    }
+
+    validateNextState(): "not all cells are in a district" | "bad districts!" | "too sus!" | null {
+        // If bad districts exist or some cells not in district, return error
+        // Otherwise, determine susness and apply probability;
+        // if susness check passes determine votes
+        const badDistricts = validateBadDistricts(this);
+        if (badDistricts == "not all cells are in a district") {
+            return "not all cells are in a district";
+        } else if (badDistricts.length != 0) {
+            return "bad districts!"
+        }
+
+        let susness = 0;
+        for (let i = 0; i < this.numDistricts; i++) {
+            susness += determineDistrictSusness(this, i)!;
+        }
+        console.log("susness: " + susness);
+        if (susness > 3.5) {
+            return "too sus!";
+        }
+
+        this.totalElectoralVotes = countDistrictVotes(this);
+
+        return null;
     }
 }

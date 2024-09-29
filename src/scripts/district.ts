@@ -4,9 +4,11 @@ import { exteriorHEOfFaces, Face } from "./grid";
 /**
  * Returns the indices of all districts that are disconnected
  */
-export function validateBadDistricts(state: GameState): number[] {
+export function validateBadDistricts(state: GameState): number[] | "not all cells are in a district" {
     const badDistricts: number[] = [];
-    state.districts.entries().forEach(([districtInd, districtSet]) => {
+    let cellsInDistricts = 0;
+    Array.from(state.districts.entries()).forEach(([districtInd, districtSet]) => {
+        cellsInDistricts += districtSet.size;
         const cellsFaces = Array.from(districtSet).map(
             (ind) => state.cells[ind].dcelFace,
         );
@@ -27,7 +29,30 @@ export function validateBadDistricts(state: GameState): number[] {
             badDistricts.push(districtInd);
         }
     });
+    if (cellsInDistricts != state.cells.length - 1) {
+        console.log("visited " + cellsInDistricts + " required " + state.cells.length)
+        return "not all cells are in a district";
+    }
     return badDistricts;
+}
+
+/**
+ * Returns total number of electoral votes given the current district allocation.
+ */
+export function countDistrictVotes(state: GameState): number {
+    let totalVotes = 0;
+    Array.from(state.districts.entries()).forEach(([districtInd, districtSet]) => {
+        let districtVotesFor = 0;
+        let districtVotesAgainst = 0;
+        Array.from(districtSet.values()).forEach((e) => {
+            districtVotesFor += state.cells[e].truePopulation * state.cells[e].voterProportion;
+            districtVotesAgainst += state.cells[e].truePopulation * (1 - state.cells[e].voterProportion);
+        });
+        if (districtVotesFor >= districtVotesAgainst) {
+            totalVotes++;
+        }
+    });
+    return totalVotes;
 }
 
 /**
