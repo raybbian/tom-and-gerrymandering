@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { Canvas, useThree } from "@react-three/fiber";
-import { Face, GridGenerator, HalfEdge } from "@/scripts/grid";
+import { Canvas } from "@react-three/fiber";
 import {
     exteriorHEOfFaces,
     Face,
@@ -16,98 +15,6 @@ import {
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
-
-const highCutoff = 0.73;
-const medCutoff = 0.5;
-
-function Buildings(): React.ReactNode {
-    const num = 3000;
-    const batched = new THREE.BatchedMesh(num * 10, num * 10 * 216);
-
-    const { scene } = useThree();
-
-    const towerId = batched.addGeometry(new THREE.BoxGeometry(0.05, 0.2, 0.05));
-    const houseId = batched.addGeometry(new THREE.BoxGeometry(0.03, 0.05, 0.03));
-    const treeId1 = batched.addGeometry(new THREE.ConeGeometry(0.018, 0.06));
-    const treeId2 = batched.addGeometry(new THREE.ConeGeometry(0.025, 0.1));
-
-    for (let i = 0; i < num; i++) {
-        const radius = 2.35;
-        const u = Math.random() * radius;
-        const v = Math.random() * radius;
-        let x = 0,
-            y = 0;
-
-        if (i < num / 3) {
-            x = u - 0.5 * v;
-            y = 0.866 * v;
-        } else if (i < (2 * num) / 3) {
-            x = u - 0.5 * v;
-            y = -0.866 * v;
-        } else {
-            x = -0.5 * v - 0.5 * u;
-            y = 0.866 * v - 0.866 * u;
-        }
-
-        let ii = 0;
-        const noise = GameState.perlinPopulation.getNormalizedNoise(x, y, 0, 1);
-        if (noise > highCutoff) {
-            if (Math.random() > noise) continue;
-            else ii = batched.addInstance(towerId);
-
-            let scale = (noise - highCutoff) / (1 - highCutoff) + 0.5;
-            if (Math.random() > 0.9) scale *= 2.0;
-
-            const yo = scale * 0.2 / 2;
-            batched.setMatrixAt(
-                ii,
-                new THREE.Matrix4().compose(
-                    new THREE.Vector3(x, yo, y),
-                    new THREE.Quaternion(),
-                    new THREE.Vector3(Math.random() * 0.2 + 0.9, scale, Math.random() * 0.2 + 0.9),
-                ),
-            );
-        } else if (noise > medCutoff) {
-            if (Math.random() > noise - 0.23) {
-                if (Math.random() < 0.3) ii = batched.addInstance(treeId1);
-                else continue;
-            }
-            else ii = batched.addInstance(houseId);
-
-            batched.setMatrixAt(
-                ii,
-                new THREE.Matrix4().compose(
-                    new THREE.Vector3(x, 0, y),
-                    new THREE.Quaternion(),
-                    new THREE.Vector3(Math.random() * 0.2 + 0.9, Math.random() * 0.6 + 0.8, Math.random() * 0.2 + 0.9),
-                ),
-            );
-        } else {
-            if (noise > 0.3 && Math.random() < 0.95) continue;
-            const cluster = Math.random() * 5;
-            for (let j = 0; j < cluster; j++) {
-                if (Math.random() < 0.3) ii = batched.addInstance(treeId2);
-                else ii = batched.addInstance(treeId1);
-                const xo = Math.random() * 0.1 - 0.05;
-                const yo = Math.random() * 0.1 - 0.05;
-
-                batched.setMatrixAt(
-                    ii,
-                    new THREE.Matrix4().compose(
-                        new THREE.Vector3(x + xo, 0, y + yo),
-                        new THREE.Quaternion(),
-                        new THREE.Vector3(1, Math.random() * 0.3 + 1.0, 1),
-                    ),
-                );
-            }
-        }
-    }
-    const mat = new THREE.MeshStandardMaterial();
-    mat.color = new THREE.Color(0.1, 0.15, 0.15);
-    batched.material = mat;
-    scene.add(batched);
-    return <></>;
-}
 
 export default function GridCanvas({
     grid,
@@ -160,8 +67,6 @@ export default function GridCanvas({
     function setMouseDown(val: boolean) {
         mouseDown.current = val;
     }
-
-    const buildingsComp = useRef(<Buildings />);
 
     const borderLines = useMemo(() => {
         const mp: Map<HalfEdge, [THREE.Vector3, THREE.Vector3]> = new Map();
@@ -231,7 +136,7 @@ export default function GridCanvas({
                 ref={cameraControlRef}
                 minPolarAngle={0}
                 maxPolarAngle={(2 * Math.PI) / 5}
-                minDistance={0}
+                minDistance={1}
                 maxDistance={5}
                 mouseButtons={{
                     left: 0, //Action.NONE
@@ -254,43 +159,6 @@ export default function GridCanvas({
                 decay={0}
                 intensity={Math.PI}
             />
-        
-            {buildingsComp.current}
-
-            {
-                Array.from(gameState.districts.values()).map((districtSet) => {
-                    if (districtSet.size == 0) return;
-                    const faces = Array.from(districtSet).map(
-                        (cellInd) => gameState.cells[cellInd].dcelFace,
-                    );
-                    const color = Math.random() * 0xffffff;
-                    const shell = grid.dcel.exteriorHEOfFaces(faces);
-                    return shell.map((he, i) => {
-                        return (
-                            <Line
-                                key={i}
-                                points={borderLines.get(he)!}
-                                color={color}
-                            />
-                        );
-                    });
-                })}
-            {Array.from(grid.dcel.faces.values()).map((face, i) => {
-                    if (face.isExterior) return;
-                    return (
-                        <GridSpace
-                            points={gridPrisms.get(face)!}
-                            currentSelection={currentSelection.current}
-                            setCurrentSelection={setCurrentSelection}
-                            setMouseDown={setMouseDown}
-                            setStartingSelection={setStartingSelection}
-                            index={i}
-                            key={i}
-                            proportion={gameState.cells[i].voterProportion}
-                            population={gameState.cells[i].truePopulation}
-                        />
-                    );
-                })}
 
             {Array.from(gameState.districts.entries()).map(
                 ([districtInd, districtSet]) => {

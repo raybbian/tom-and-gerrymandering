@@ -5,7 +5,7 @@ export default function CampaignMenu({onClickHandler, cost}: {onClickHandler: ()
     return(
         <div className="flex absolute z-10 left-[80vw] top-[2vw] ">
             <div className="h-[calc(5vw+8px)] w-[calc(22vw+7px)] right-[0vw] top-[1vw]  ribbon absolute inline-block bg-black">
-                <div className="h-[5vw] w-[22vw] top-[4px]  bg-red absolute right-[0vw] ribbon flex flex-col-reverse justify-center">
+                <div className="h-[5vw] w-[22vw] top-[4px]  bg-accent absolute right-[0vw] ribbon flex flex-col-reverse justify-center">
                     <h1 className=" font-Montserrat font-semibold text-lg text-textWhite w-100 h-100  text-center relative left-[1.3vw]">CAMPAIGN</h1>
                 </div>
                 <div className="h-[5vw] w-[22vw] top-[4px]  bg-yellow-200 absolute right-[0vw] ribbonAccent flex flex-col-reverse justify-center">
