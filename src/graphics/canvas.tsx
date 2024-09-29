@@ -1,17 +1,18 @@
 import * as THREE from "three";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import {
     exteriorHEOfFaces,
     Face,
     GridGenerator,
     HalfEdge,
 } from "@/scripts/grid";
-import { CameraControls, PerspectiveCamera, Stats } from "@react-three/drei";
+import { CameraControls, PerspectiveCamera, Stats, Sky } from "@react-three/drei";
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { ConvexGeometry } from "three/examples/jsm/Addons.js";
 import { PerlinNoise } from "@/scripts/perlin";
+import { Water, Water2 } from "three-stdlib";
 
 const highCutoff = 0.73;
 const medCutoff = 0.5;
@@ -133,6 +134,37 @@ function Buildings({
     return <></>;
 }
 
+function Ocean() {
+    const ref = useRef<Water | null>(null);
+    const { scene } = useThree();
+    const waterNormals = useLoader(THREE.TextureLoader, '/waternormals.jpeg');
+    waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+    useEffect(() => {
+        const plane = new THREE.PlaneGeometry(1000, 1000);
+        plane.rotateX(-Math.PI / 2);
+        plane.translate(0, -.1, 0);
+        ref.current = new Water(plane,
+            ({
+                textureWidth: 512,
+                textureHeight: 512,
+                waterNormals,
+                sunDirection: new THREE.Vector3(),
+                sunColor: 0xffffff,
+                waterColor: 0x001e0f,
+                distortionScale: 3.7,
+                fog: false,
+            }),
+        );
+        scene.add(ref.current);
+    }, [scene, waterNormals]);
+    useFrame((_, delta) => {
+        console.log(ref.current)
+        if (ref.current == null) return;
+        ref.current.material.uniforms.time.value += delta / 10.
+    });
+    return <></>
+}
+
 export default function GridCanvas({
     grid,
     gameState,
@@ -220,6 +252,11 @@ export default function GridCanvas({
     const buildingsComp = useMemo(
         () => <Buildings grid={grid} perlin={gameState.perlinPopulation} />,
         [grid, gameState.perlinPopulation],
+    );
+
+    const oceanComp = useMemo(
+        () => <Ocean />,
+        []
     );
 
     const borderLines = useMemo(() => {
@@ -375,7 +412,7 @@ export default function GridCanvas({
                         key={i}
                         proportion={gameState.cells[i].voterProportion}
                         population={gameState.cells[i].truePopulation}
-                        // actionMode={gameState.actionMode}
+                    // actionMode={gameState.actionMode}
                     />
                 );
             })}
