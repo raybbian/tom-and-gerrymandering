@@ -6,11 +6,8 @@ import { GridGenerator } from "@/scripts/grid";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
 import LevelTransition from "@/components/level-transition";
-import { useState } from "react";
-import InfoPopup from "@/components/info_popup";
-import RedistrictMenu from "@/components/redistrict_menu";
 
-        export default function Home() {
+export default function Home() {
     const [uiRenderCount, setUiRenderCount] = useState(0);
 
     const [curLevel, setCurLevel] = useState(-1);
