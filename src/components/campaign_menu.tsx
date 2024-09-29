@@ -14,7 +14,7 @@ export default function CampaignMenu({ cost }: { cost: number }) {
             </div>
             <div className="flex flex-col">
                 <div className="h-[20vw] w-[20vw] bg-primary border-l-4 border-t-4 border-b-4 border-black rounded-tl-[1vw] rounded-bl-[1vw]">
-                    <div className="absolute h-[50%] w-[100%] top-[6.7vw] flex flex-col justify-center items-center  ">
+                    <div className="absolute h-[50%] w-[100%] top-[7.8vw] flex flex-col justify-center items-center  ">
                         <div className="w-[10vw] ">
                             <Image
                                 src={cheese}
