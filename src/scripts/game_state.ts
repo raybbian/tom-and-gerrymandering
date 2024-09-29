@@ -1,3 +1,4 @@
+import { countDistrictVotes, determineDistrictSusness, validateBadDistricts } from "./district";
 import { DCEL, Face, GridGenerator, HalfEdge } from "./grid";
 import { PerlinNoise } from "./perlin";
 
@@ -35,12 +36,16 @@ export class GameState {
     // public mouseDown: boolean;
     // public currentDistrictSelection: number | null;
     public numDistricts: number;
+    public maxDistricts: number;
+    public currentDistrict: number;
     // (district number, Set<cells in the district>)
     public districts: Map<number, Set<number>>;
 
     static perlinPopulation = new PerlinNoise(1);
     static perlinVoterDistribution = new PerlinNoise(1);
 
+    public totalElectoralVotes: number;
+    public susness: number;
 
     constructor(grid: GridGenerator) {
         this.actionMode = "campaigning";
@@ -75,39 +80,53 @@ export class GameState {
         // this.mouseDown = false;
         // this.currentDistrictSelection = 0;
         this.numDistricts = 0;
-        this.districts = new Map();
-        for (let i = 1; i <= 200; i++) {
-            this.districts.set(i, new Set());
-        }
+        this.maxDistricts = 10;
+        this.currentDistrict = 0;
+        this.districts = new Map<number, Set<number>>();
+        // for (let i = 1; i <= 200; i++) {
+        //     this.districts.set(i, new Set());
+        // }
+
+        this.totalElectoralVotes = 0;
+        this.susness = 0;
     }
 
     setActionMode(mode: "redistricting" | "campaigning") {
         this.actionMode = mode;
     }
 
+    updateNumDistricts() {
+        this.numDistricts = this.districts.size;
+    }
+
     addCellToDistrict(cellIndex: number, district: number | null) {
         const previousDistrict = this.cells[cellIndex].district;
         console.log(district == null);
         if (previousDistrict != null) {
-            // const newDistrictSize = this.district_sizes.get(previousDistrict)! - this.cells[cellIndex].population;
             this.districts.get(previousDistrict)!.delete(cellIndex);
             if (this.districts.get(previousDistrict)!.size == 0) {
-                this.numDistricts--;
+                this.districts.delete(previousDistrict);
             }
         }
         this.cells[cellIndex].district = district;
         if (district != null) {
-            if (district > this.numDistricts) {
-                this.numDistricts = district;
-            }
+            // if (district > this.numDistricts) {
+            //     if (this.numDistricts == this.maxDistricts) {
+            //         console.log("districts at max")
+            //         return;
+            //     }
+            // }
             console.log("attempting to get district " + district);
+            const district_set = this.districts.get(district);
+            if (district_set == null) {
+                this.districts.set(district, new Set());
+            }
             this.districts.get(district)!.add(cellIndex);
             console.log(
                 "district size is: " + this.districts.get(district)!.size,
             );
-            // this.district_sizes.set(district, this.district_sizes.get(district)! + this.cells[cellIndex].population);
-            // this.districts.get(district)!.(cellIndex);
         }
+        this.updateNumDistricts()
     }
 
     removeCellFromDistrict(cellIndex: number) {
@@ -147,5 +166,43 @@ export class GameState {
                 edge = edge.next;
             } while (edge != initialEdge)
         }
+    }
+
+    updateSusness(): number {
+        let susness = 0;
+        for (let i = 1; i <= this.numDistricts; i++) {
+            const newsusness = determineDistrictSusness(this, i)!;
+            // console.log("susness for district " + i + " is " + newsusness);
+            susness += newsusness;
+        }
+        this.susness = susness;
+        // console.log("update susness to " + susness);
+        return susness;
+    }
+
+    validateNextState(): "not all cells are in a district" | "bad districts!" | "not enough districts!" | "too sus!" | null {
+        // If bad districts exist or some cells not in district, return error
+        // Otherwise, determine susness and apply probability;
+        // if susness check passes determine votes
+        const badDistricts = validateBadDistricts(this);
+        if (badDistricts == "not all cells are in a district") {
+            return "not all cells are in a district";
+        } else if (badDistricts.length != 0) {
+            return "bad districts!"
+        }
+
+        if (this.numDistricts != this.maxDistricts) {
+            return "not enough districts!";
+        }
+
+        const susness = this.updateSusness();
+        console.log("susness: " + susness);
+        if (susness > 3.5) {
+            return "too sus!";
+        }
+
+        this.totalElectoralVotes = countDistrictVotes(this);
+
+        return null;
     }
 }

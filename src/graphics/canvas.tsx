@@ -19,9 +19,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 export default function GridCanvas({
     grid,
     gameState,
+    setDistrictInfo,
 }: {
     grid: GridGenerator;
     gameState: GameState;
+    setDistrictInfo: (val: number[]) => void;
 }) {
     console.log("Canvas re-render?");
 
@@ -37,13 +39,25 @@ export default function GridCanvas({
     const [renderCount, setRenderCount] = useState(0);
 
     function setCurrentSelection(val: number | null) {
+        // console.log("set cat supps to " + (val == null ? -1 : val));
         currentSelection.current = val;
+        if (val != null) {
+            const cell = gameState.cells[val];
+            const POPULATION_SCALE = 10000;
+            setDistrictInfo([
+                ~~(cell.truePopulation * POPULATION_SCALE / 100) * 100,
+                Math.round(cell.voterProportion * 100),
+                Math.round((1 - cell.voterProportion) * 100),
+            ]);
+            // console.log("setting info");
+        }
         if (currentSelection.current != null && mouseDown.current) {
-            if (gameState.actionMode == "redistricting") {
+            if (gameState.actionMode == "redistricting" && startingSelection.current! <= gameState.maxDistricts) {
                 gameState.addCellToDistrict(
                     currentSelection.current,
                     startingSelection.current,
                 );
+                gameState.updateSusness();
             }
             setRenderCount(renderCount + 1);
         }
@@ -52,7 +66,7 @@ export default function GridCanvas({
     function setStartingSelection(val: number) {
         if (gameState.actionMode == "redistricting") {
             const district = gameState.cells[val].district;
-            console.log("District for index " + val + " is " + district);
+            // console.log("District for index " + val + " is " + district);
             if (district == null) {
                 // console.log("set starting selection to new dist");
                 startingSelection.current = gameState.numDistricts + 1;
