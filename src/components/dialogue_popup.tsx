@@ -1,25 +1,9 @@
 import Image from 'next/image';
-import tomsilly from '../assets/tomsilly.png';
-import tomhappy from '../assets/tomhappy.jpg';
 import {motion} from 'framer-motion';
 
 export default function DialoguePopup({text, image, onClickHandler}: {text: string,image:any, onClickHandler: () => void}) {
 
     const basedelay = .3;
-    const characterAnimation = {
-        hidden: {
-          opacity: 0,
-          y: `0.25em`,
-        },
-        visible: {
-          opacity: 1,
-          y: `0em`,
-          transition: {
-            duration: 1,
-            ease: [0.2, 0.65, 0.3, 0.9],
-          },
-        },
-      };
       let total = 0;
     
     return(
