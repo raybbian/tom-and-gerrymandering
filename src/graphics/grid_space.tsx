@@ -24,7 +24,7 @@ export function GridSpace(
         if (hovered) {
             meshRef.current.position.y += delta * 0.5;
             meshRef.current.position.y = Math.min(
-                0.05,
+                0.01,
                 meshRef.current.position.y,
             );
         } else {
@@ -41,7 +41,10 @@ export function GridSpace(
     }, [props.points]);
 
     const shift = 1.5;
-    const p = props.proportion < 0.5 ? Math.pow(props.population, shift) : 1 - Math.pow(1 - props.proportion, shift);
+    const p =
+        props.proportion < 0.5
+            ? Math.pow(props.population, shift)
+            : 1 - Math.pow(1 - props.proportion, shift);
 
     const col: Color = [0, 0, 0];
     // switch (p) {

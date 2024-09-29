@@ -4,33 +4,39 @@ import { exteriorHEOfFaces, Face } from "./grid";
 /**
  * Returns the indices of all districts that are disconnected
  */
-export function validateBadDistricts(state: GameState): number[] | "not all cells are in a district" {
+export function validateBadDistricts(
+    state: GameState,
+): number[] | "not all cells are in a district" {
     const badDistricts: number[] = [];
     let cellsInDistricts = 0;
-    Array.from(state.districts.entries()).forEach(([districtInd, districtSet]) => {
-        cellsInDistricts += districtSet.size;
-        const cellsFaces = Array.from(districtSet).map(
-            (ind) => state.cells[ind].dcelFace,
-        );
-        const faceSet = new Set(cellsFaces);
+    Array.from(state.districts.entries()).forEach(
+        ([districtInd, districtSet]) => {
+            cellsInDistricts += districtSet.size;
+            const cellsFaces = Array.from(districtSet).map(
+                (ind) => state.cells[ind].dcelFace,
+            );
+            const faceSet = new Set(cellsFaces);
 
-        function dfs(face: Face) {
-            if (!faceSet.has(face)) return;
-            faceSet.delete(face);
-            let edge = face.edge;
-            do {
-                dfs(edge.twin.face);
-                edge = edge.next;
-            } while (edge != face.edge);
-        }
-        dfs(cellsFaces[0]);
+            function dfs(face: Face) {
+                if (!faceSet.has(face)) return;
+                faceSet.delete(face);
+                let edge = face.edge;
+                do {
+                    dfs(edge.twin.face);
+                    edge = edge.next;
+                } while (edge != face.edge);
+            }
+            dfs(cellsFaces[0]);
 
-        if (faceSet.size != 0) {
-            badDistricts.push(districtInd);
-        }
-    });
+            if (faceSet.size != 0) {
+                badDistricts.push(districtInd);
+            }
+        },
+    );
     if (cellsInDistricts != state.cells.length - 1) {
-        console.log("visited " + cellsInDistricts + " required " + state.cells.length)
+        console.log(
+            "visited " + cellsInDistricts + " required " + state.cells.length,
+        );
         return "not all cells are in a district";
     }
     return badDistricts;
@@ -41,18 +47,33 @@ export function validateBadDistricts(state: GameState): number[] | "not all cell
  */
 export function countDistrictVotes(state: GameState): number {
     let totalVotes = 0;
-    Array.from(state.districts.entries()).forEach(([districtInd, districtSet]) => {
-        let districtVotesFor = 0;
-        let districtVotesAgainst = 0;
-        Array.from(districtSet.values()).forEach((e) => {
-            districtVotesFor += state.cells[e].truePopulation * state.cells[e].voterProportion;
-            districtVotesAgainst += state.cells[e].truePopulation * (1 - state.cells[e].voterProportion);
-        });
+    Array.from(state.districts.keys()).forEach((districtInd) => {
+        const [districtVotesFor, districtVotesAgainst] = votesInDistrict(
+            state,
+            districtInd,
+        );
         if (districtVotesFor >= districtVotesAgainst) {
             totalVotes++;
         }
     });
     return totalVotes;
+}
+
+export function votesInDistrict(
+    state: GameState,
+    districtInd: number,
+): [number, number] {
+    const districtSet = state.districts.get(districtInd)!;
+    let districtVotesFor = 0;
+    let districtVotesAgainst = 0;
+    Array.from(districtSet.values()).forEach((e) => {
+        districtVotesFor +=
+            state.cells[e].truePopulation * state.cells[e].voterProportion;
+        districtVotesAgainst +=
+            state.cells[e].truePopulation *
+            (1 - state.cells[e].voterProportion);
+    });
+    return [districtVotesFor, districtVotesAgainst];
 }
 
 /**

@@ -6,15 +6,11 @@ import {
     GridGenerator,
     HalfEdge,
 } from "@/scripts/grid";
-import {
-    CameraControls,
-    Line,
-    PerspectiveCamera,
-    Stats,
-} from "@react-three/drei";
+import { CameraControls, PerspectiveCamera, Stats } from "@react-three/drei";
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ConvexGeometry } from "three/examples/jsm/Addons.js";
 import { PerlinNoise } from "@/scripts/perlin";
 
 const highCutoff = 0.73;
@@ -122,8 +118,11 @@ function Buildings({
                 }
             }
         }
-        const mat = new THREE.MeshStandardMaterial();
-        mat.color = new THREE.Color(0.1, 0.15, 0.15);
+        const mat = new THREE.MeshStandardMaterial({
+            opacity: 0.5,
+            transparent: true,
+        });
+        mat.color = new THREE.Color(1, 1, 1);
         batched.material = mat;
         scene.add(batched);
         return () => {
@@ -224,17 +223,30 @@ export default function GridCanvas({
     );
 
     const borderLines = useMemo(() => {
-        const mp: Map<HalfEdge, [THREE.Vector3, THREE.Vector3]> = new Map();
+        const LINE_WIDTH = 0.01;
+        const mp: Map<HalfEdge, THREE.Vector3[]> = new Map();
         grid.dcel.halfEdges.forEach((he) => {
-            if (mp.has(he) || mp.has(he.twin)) {
+            if (mp.has(he.twin)) {
                 return;
             }
-            const linePoints: [THREE.Vector3, THREE.Vector3] = [
-                new THREE.Vector3(he.a.pos[0], 0, he.a.pos[1]),
-                new THREE.Vector3(he.b.pos[0], 0, he.b.pos[1]),
+            const aToB = [he.b.pos[0] - he.a.pos[0], he.b.pos[1] - he.a.pos[1]];
+            const bToLeft = [-aToB[1], aToB[0]];
+            const len = Math.sqrt(Math.pow(aToB[0], 2) + Math.pow(aToB[1], 2));
+            bToLeft[0] /= len / LINE_WIDTH;
+            bToLeft[1] /= len / LINE_WIDTH;
+
+            const rect = [
+                [he.a.pos[0], he.a.pos[1]],
+                [he.b.pos[0], he.b.pos[1]],
+                [he.a.pos[0] + bToLeft[0], he.a.pos[1] + bToLeft[1]],
+                [he.b.pos[0] + bToLeft[0], he.b.pos[1] + bToLeft[1]],
             ];
-            mp.set(he, linePoints);
-            mp.set(he.twin, linePoints);
+
+            const points = [
+                ...rect.map(([x, z]) => new THREE.Vector3(x, 0, z)),
+                ...rect.map(([x, z]) => new THREE.Vector3(x, 0.001, z)),
+            ];
+            mp.set(he.twin, points);
         });
         return mp;
     }, [grid]);
@@ -249,18 +261,9 @@ export default function GridCanvas({
                         new THREE.Vector3(point.pos[0], -0.1, point.pos[1]),
                 ),
                 ...pointList.map(
-                    (point) =>
-                        new THREE.Vector3(point.pos[0], -0.0001, point.pos[1]),
+                    (point) => new THREE.Vector3(point.pos[0], 0, point.pos[1]),
                 ),
             ]);
-        });
-        return mp;
-    }, [grid]);
-
-    const districtColors = useMemo(() => {
-        const mp: Map<number, number> = new Map();
-        Array.from(grid.dcel.faces.values()).forEach((_, i) => {
-            mp.set(i, Math.random() * 0xffffff);
         });
         return mp;
     }, [grid]);
@@ -322,15 +325,40 @@ export default function GridCanvas({
                         (cellInd) => gameState.cells[cellInd].dcelFace,
                     );
                     const shell = exteriorHEOfFaces(faces);
-                    return shell.map((he, i) => {
-                        return (
-                            <Line
-                                key={i}
-                                points={borderLines.get(he)!}
-                                color={districtColors.get(districtInd)}
-                            />
-                        );
-                    });
+                    return [
+                        ...shell.map((he, i) => {
+                            return (
+                                <mesh
+                                    key={i}
+                                    geometry={
+                                        new ConvexGeometry(borderLines.get(he)!)
+                                    }
+                                >
+                                    <meshStandardMaterial color={"hotpink"} />
+                                </mesh>
+                            );
+                        }),
+                        ...faces.map((face, i) => {
+                            return (
+                                <mesh
+                                    key={`h${i}`}
+                                    geometry={
+                                        new ConvexGeometry(
+                                            gridPrisms.get(face)!,
+                                        )
+                                    }
+                                    scale={[1, 0.01, 1]}
+                                    position={[0, 0.001, 0]}
+                                >
+                                    <meshStandardMaterial
+                                        color={"hotpink"}
+                                        opacity={0.2}
+                                        transparent
+                                    />
+                                </mesh>
+                            );
+                        }),
+                    ];
                 },
             )}
             {Array.from(grid.dcel.faces.values()).map((face, i) => {
