@@ -180,7 +180,7 @@ export class GameState {
         return susness;
     }
 
-    validateNextState(): "not all cells are in a district" | "bad districts!" | "too sus!" | null {
+    validateNextState(): "not all cells are in a district" | "bad districts!" | "not enough districts!" | "too sus!" | null {
         // If bad districts exist or some cells not in district, return error
         // Otherwise, determine susness and apply probability;
         // if susness check passes determine votes
@@ -189,6 +189,10 @@ export class GameState {
             return "not all cells are in a district";
         } else if (badDistricts.length != 0) {
             return "bad districts!"
+        }
+
+        if (this.numDistricts != this.maxDistricts) {
+            return "not enough districts!";
         }
 
         const susness = this.updateSusness();

@@ -1,7 +1,7 @@
 import cheese from '../assets/cheesefunny.png';
 import Image from 'next/image';
 
-export default function CampaignMenu({onClickHandler, cost}: {onClickHandler: () => void, cost: number}) {
+export default function CampaignMenu({cost}: {cost: number}) {
     return(
         <div className="flex absolute z-10 left-[80vw] top-[2vw] ">
             <div className="h-[calc(5vw+8px)] w-[calc(22vw+7px)] right-[0vw] top-[1vw]  ribbon absolute inline-block bg-black">
