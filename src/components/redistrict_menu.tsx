@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import cheese from '../assets/cheesefunny.png'
+import {motion} from 'framer-motion'
 
 export default function RedistrictMenu({onClickHandler, cost, remainingDistricts}: {onClickHandler: () => void, cost: number, remainingDistricts: number}) {
     return (
@@ -24,7 +25,10 @@ export default function RedistrictMenu({onClickHandler, cost, remainingDistricts
                         </div>
                 </div>
                 <button onClick={() => onClickHandler()} className="bg-secondary w-[100%] h-[10vh] rounded-bl-[1vw] border-l-4 border-b-4 border-black">
-                    <h1 className='font-sans font-semibold text-lg'>SUBMIT</h1>
+                    <motion.h1
+                    whileHover={{scale: 1.1}}
+                    whileTap={{scale: 0.9}}
+                    className='font-sans font-semibold text-lg'>SUBMIT</motion.h1>
                 </button>
             </div>
         </div>
