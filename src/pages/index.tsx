@@ -9,12 +9,23 @@ import InfoPopup from "@/components/info_popup";
 import RedistrictMenu from "@/components/redistrict_menu";
 import { AnimatePresence, motion } from "framer-motion";
 import LevelTransition from "@/components/level-transition";
+import tomhappy from "@/assets/tomhappy.jpg";
+import tomsilly from "@/assets/tomsilly.png";
 
 export default function Home() {
     const [uiRenderCount, setUiRenderCount] = useState(0);
 
     const [curLevel, setCurLevel] = useState(-1);
     const [districtInfo, setDistrictInfo] = useState([0, 0, 0]);
+    const [dialogueImage, setDialogueImage] = useState(tomhappy);
+    const [dialogueText, setDialogueText] = useState("I LOVE CHEESE");
+    const [dialogueVisible, setDialogueVisible] = useState(false);
+
+    const addDialogue = (text: string, image: any) => {
+        setDialogueText(text);
+        setDialogueImage(image);
+        setDialogueVisible(true);
+    };
 
     /**
      * set to level ID to go to next level
@@ -80,6 +91,7 @@ export default function Home() {
 
     return (
         <div className="bg-blue-950 w-[100dvw] h-[100dvh] absolute z-0 overflow-hidden">
+            <button className="bg-black" onClick={()=> addDialogue("CHEEEEEEEEEEEEEEEEEEEEEEEEEESE (cheddar)", tomsilly)}>asdfjkasldkjf;alsd;laskjd</button>
             {levelTransition}
             {curLevel != -1 && (
                 <>
@@ -125,8 +137,19 @@ export default function Home() {
                                 <CampaignMenu cost={50} />
                             </motion.div>
                         )}
+                        {dialogueVisible && 
+                        <motion.div
+                            key={3}
+                            initial={{ y: "15vw" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "15vw" }}
+                            className="absolute z-10 bottom-0 w-full"
+                        >
+                            
+                            <DialogueContainer image={dialogueImage}  text={dialogueText} onClickHandler={() => setDialogueVisible(false)} />
+                        </motion.div>}
+                        
                     </AnimatePresence>
-                    <DialogueContainer text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
                     <InfoPopup
                         population={districtInfo[0]}
                         catSupporters={districtInfo[1]}
@@ -145,3 +168,4 @@ export default function Home() {
         </div>
     );
 }
+
