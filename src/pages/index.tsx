@@ -11,6 +11,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import LevelTransition from "@/components/level-transition";
 import tomhappy from "@/assets/tomhappy.jpg";
 import tomsilly from "@/assets/tomsilly.png";
+import TitleScreen from "@/components/title";
+import { title } from "process";
+import blueback from "@/assets/blueback.png";
+import Image from "next/image";
 import tomalarmed from "@/assets/tomalarmed.png"
 import tomevil from "@/assets/tomevil.png"
 import tomgun from "@/assets/tomgun.png"
@@ -74,6 +78,8 @@ export default function Home() {
         setDialogueVisible(true);
     };
 
+    const [titleScreen, setTitleScreen] = useState(true);
+
     /**
      * set to level ID to go to next level
      */
@@ -134,9 +140,12 @@ export default function Home() {
                             cell.voterProportion -= Math.random() * 0.2;
                         });
                         setCurLevel(transitioning);
+                        setTitleScreen(false);
+
                     }}
                     onTransitionFinished={() => {
                         setTransitioning(-1);
+                        
                     }}
                 />
             );
@@ -159,6 +168,9 @@ export default function Home() {
 
     return (
         <div className="bg-blue-950 w-[100dvw] h-[100dvh] absolute z-0 overflow-hidden">
+        
+            {titleScreen && <TitleScreen onClickHandler={setTransitioning}></TitleScreen>}
+
             {levelTransition}
             {curLevel != -1 && (
                 <>
