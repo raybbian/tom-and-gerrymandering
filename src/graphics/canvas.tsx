@@ -9,10 +9,10 @@ import {
 import { CameraControls, PerspectiveCamera, Stats, Sky } from "@react-three/drei";
 import { GridSpace } from "./grid_space";
 import { GameState } from "@/scripts/game_state";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ConvexGeometry } from "three/examples/jsm/Addons.js";
 import { PerlinNoise } from "@/scripts/perlin";
-import { Water, Water2 } from "three-stdlib";
+import { Water } from "three-stdlib";
 
 const highCutoff = 0.73;
 const medCutoff = 0.5;
@@ -140,9 +140,9 @@ function Ocean() {
     const waterNormals = useLoader(THREE.TextureLoader, '/waternormals.jpeg');
     waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
     useEffect(() => {
-        const plane = new THREE.PlaneGeometry(1000, 1000);
+        const plane = new THREE.PlaneGeometry(100000, 10000);
         plane.rotateX(-Math.PI / 2);
-        plane.translate(0, -.1, 0);
+        plane.translate(500, -2.01, 500);
         ref.current = new Water(plane,
             ({
                 textureWidth: 512,
@@ -155,6 +155,7 @@ function Ocean() {
                 fog: false,
             }),
         );
+        ref.current.visible = false;
         scene.add(ref.current);
     }, [scene, waterNormals]);
     useFrame((_, delta) => {
@@ -354,6 +355,11 @@ export default function GridCanvas({
             />
 
             {buildingsComp}
+
+            <group visible={false}>
+                <Sky/>
+                {oceanComp}
+            </group>
 
             {Array.from(gameState.districts.entries()).map(
                 ([districtInd, districtSet]) => {
